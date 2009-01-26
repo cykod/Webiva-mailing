@@ -1,0 +1,59 @@
+<script>
+CampaignEditor = {
+
+  updateSelected: function(url) {
+    $('campaign_form').action = url;
+    $('campaign_form').submit();
+    
+  
+  },
+  
+  updateCampaigns: [],
+  
+  
+  refreshCampaigns: function() {
+    
+    if(CampaignEditor.updateCampaigns.length > 0) {
+    
+      var params = '';
+      CampaignEditor.updateCampaigns.each(function(cap_id) {
+        params += "cid[]=" + cap_id + "&";
+      
+      });
+      new Ajax.Request("<%= url_for :action => 'update_campaigns' %>",
+                       { parameters: params } );
+    
+    
+    }
+  
+  }
+  
+
+
+}
+
+<%= active_table_javascript %>
+
+</script>
+<div class='admin_content'>
+<ul class='action_panel'>
+  <li><a href='<%= url_for :action => 'new' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Create New Campaign".t %></a></li>
+  <li><% if @show_archived %>
+          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Hide Archived'.t, :action => 'index',:archived => 0 %>
+        <% else-%>
+          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Show Archived'.t, :action => 'index',:archived => 1 %>
+        <% end -%>
+    </li>
+</ul>
+</div>
+<hr/>
+
+<div class='admin_content'>
+
+<div id='campaign_table'>
+  <%= render :partial => 'campaign_table' %>
+</div>
+
+<script>
+  setTimeout(CampaignEditor.refreshCampaigns,1000);
+</script>

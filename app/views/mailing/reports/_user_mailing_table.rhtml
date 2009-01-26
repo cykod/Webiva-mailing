@@ -1,0 +1,12 @@
+<% active_table_for :queue_table, @active_table_output,
+                      :refresh_url => url_for(:action => 'display_queue_table', :path => @user.id),
+                      :update => 'user_mailing_table'  do |t| -%>
+<tr>
+  <td><%= link_to h(t.market_campaign.name), :controller => '/campaigns', :action => 'status', :path => t.market_campaign.id %></td>
+  <td  align='center'><%= t.sent? ? t.sent_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.bounced? ? 'Bounce'.t : '-' %></td>
+  <td  align='center'><%= t.opened? ? t.opened_at.strftime(DEFAULT_DATE_FORMAT.t) : '-' %></td>
+  <td align='center'><%= t.unsubscribed? ? 'Yes'.t : '-' %></td>
+  <td align='center'><%= t.click_count %></td>
+</tr>                      
+<% end -%>                      

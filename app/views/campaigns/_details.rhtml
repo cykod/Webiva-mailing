@@ -1,0 +1,29 @@
+<% case @detail_type
+   when 'opened': %>
+  <% table_for @queue_entries, [ 'Email','Opened At' ], :class => 'stats_table' do |queue| %>
+  <tr>
+    <td><%= queue.email %></td>
+    <td><%= queue.opened_at.localize("%m/%d/%Y %H:%M".t) %></td>
+  </tr>
+  <% end -%>
+  <% when 'clicked': %>
+  <% table_for @queue_entries, [ 'Email','Link','Click Count','Last Click' ], :class => 'stats_table' do |queue| %>
+    <tr>
+      <td><%= queue.email %></td>
+    </tr>
+    <% queue.market_link_entries.each do |entry| %>
+      <tr>
+	<td></td>
+	<td><%= @market_links[entry.market_link_id].link_to %></td>
+	<td align='center'><%= entry.click_count %></td>
+	<td><%= entry.last_clicked_at.localize("%m/%d/%Y %H:%M".t) %></td>
+      </tr>
+    <% end -%>
+  <% end -%>
+  <% when 'bounced', 'unsubscribed': %>
+    <% table_for @queue_entries, [ 'Email' ], :class => 'stats_table' do |queue| %>
+    <tr>
+      <td><%= queue.email %></td>
+    </tr>
+    <% end -%>
+<% end -%>

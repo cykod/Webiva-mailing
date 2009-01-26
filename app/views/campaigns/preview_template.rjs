@@ -1,0 +1,30 @@
+page.show 'preview_container'
+page.replace_html 'preview_title', :partial => 'message_preview'
+page.replace_html 'match_variables', :partial => 'message_fields'
+page.show 'match_variables'
+
+case @mail_template.body_format
+when 'both','html':
+  page.hide 'preview_body_text'
+  page.show 'preview_body_html'
+when 'text'
+  page.hide 'preview_body_html'
+  page.show 'preview_body_text'
+end
+
+page.show 'selected_template_links'
+
+if @mail_template.is_html
+  page <<  "$('preview_iframe').contentWindow.document.open()"
+  txt = ''
+  txt = '<style>' + SiteTemplate.render_template_css(@mail_template.site_template.css_id,Locale.language_code.downcase) + "</style>\n\n" if @mail_template.site_template
+  txt += @mail_template.render_html(@preview_vars)
+  page.call "$('preview_iframe').contentWindow.document.write", txt 
+  page <<  "$('preview_iframe').contentWindow.document.close()"
+end
+
+if @mail_template.is_text
+  page.replace_html "preview_body_text", simple_format(@mail_template.render_text(@preview_vars))
+end
+
+page << '$("next_butt").disabled = false;'

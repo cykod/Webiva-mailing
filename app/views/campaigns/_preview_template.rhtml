@@ -1,0 +1,16 @@
+      <div id='preview_title' style='background-color:#f2ecde; padding:5px;'>
+        <%= render :partial => 'message_preview' if @campaign.mail_template %>
+      </div>
+      <div id='preview_body_html' <%="style='display:none;'" unless @mail_template && @mail_template.is_html %> >
+      <iframe id='preview_iframe' width='100%' style='height:400px; border:0px;'></iframe>
+      <% if @mail_template && @mail_template.is_html %>
+      <script>
+        $('preview_iframe').contentWindow.document.open();
+        var content = "<%= jh('<style>' + SiteTemplate.render_template_css(@mail_template.site_template.css_id,Locale.language_code.downcase) + "</style>\n\n") if @mail_template.site_template %><%= jh @mail_template.render_html(@preview_vars) %>";
+        $('preview_iframe').contentWindow.document.write(content);
+        $('preview_iframe').contentWindow.document.close();
+      </script>
+      <% end -%>
+      </div>
+
+      <div id='preview_body_text' style='padding:5px; height:400px; overflow:scroll; <%= "display:none;" unless @mail_template && @mail_template.body_format == 'text' %>' ><%= simple_format(@mail_template.render_text(@preview_vars)) if @mail_template && @mail_template.is_text %></div>

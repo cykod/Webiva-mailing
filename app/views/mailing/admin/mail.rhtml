@@ -1,0 +1,19 @@
+<div align='right'>
+  <a href='javascript:void(0);' onclick='StructureEditor.nodeDelete(<%= @node.id %>,"<%= jh "Are you sure you want to delete the Mail Module?" .t %>");'><%= "Delete Module".t %></a>
+</div>  
+<b> <%= "Mail Module Options:".t %> <%= @node.node_path %></b><br/><br/>
+
+<% if @saved %>
+  <b><%= "Options Saved".t %></b><br/><br/>
+<% end -%>
+
+
+<% remote_tabled_form_for :options, @options, 
+		:update => 'element_info', 
+		:method => 'post', 
+		:url =>  { :controller => '/mailing/admin', :action => 'mail', :path => @node.id  } do  |f| -%>
+
+<%= f.text_area :unsubscribe_text, :cols => 50, :rows => 5 %>
+<%= f.text_area :unsubscribed_text, :cols => 50, :rows => 5 %>
+<%= f.submit_tag 'Update' %>
+<% end -%>

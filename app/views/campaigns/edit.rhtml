@@ -1,0 +1,34 @@
+<div class='admin_content'>
+<%= render :partial => 'campaign_steps' %>
+
+<table cellpadding='10'>
+<tr>
+<td>
+<% cms_form_for :campaign, @campaign do |f| %>
+<%= f.text_field :name, :vertical => true, :size => 60, :label => 'Campaign Title (For your use only)' %>
+<% if @senders.length > 1 %>
+<%= f.select :sender_type, @senders, { :label => 'Select Sender', :vertical => true } %>
+<% end -%>
+<%= f.text_area :description, :vertical => true, :cols => 50, :rows => 5, :label => 'Comments / Objects (optional)' %>
+<%= f.submit_tag 'Next' %>
+<% end -%>
+</td>
+<td width='400' style='padding-left:20px;'> 
+  <p><img src='<%= theme_src("icons/campaigns/campaign_wizard.gif") %>' width='32' height='32' style='margin-right:5px;' align='left'/>
+     <%= "This is the first step in creating your e-mail campaign.".t %><br/>
+     <%= "In the next steps you will be asked to:".t %>
+     <ul>
+      <li><%= "Choose the target from you list of contracts".t %></li>
+      <li><%= "Select or create a template for you e-mail message".t %></li>
+      <li><%= "Customize fields in the message if necessary".t %></li>
+      <li><%= "Determine how you want to track the email".t %></li>
+      <li><%= "Confirm and send your campaign".t %></li>
+    </ul>
+  </p>
+  <p><b><%= "You can easily complete this simple process".t %></b>
+     <%= 'by following our Campaign Wizard and clicking on the "Next" button after each step.'.t %>
+  </p>
+</td>
+</table>
+      
+</div>

@@ -1,0 +1,5 @@
+<% if @format == 'html' %>
+  <%= @mail_template.render_html(@vars) %>
+<% else -%>
+  <%= simple_format @mail_template.render_text(@vars) %>
+<% end -%>

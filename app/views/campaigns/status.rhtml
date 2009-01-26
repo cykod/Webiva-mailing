@@ -1,0 +1,120 @@
+<script>
+CampaignViewer = {
+  loaded: $H({}), 
+  
+  loadDetails: function(type) {
+    
+      if(!CampaignViewer.loaded.get(type)) {
+	CampaignViewer.loaded.set(type,true);
+        new Ajax.Updater('details_' + type,
+			"<%= url_for :action => 'details', :path => @campaign.id %>?detail_type=" + type);
+      }
+  },
+  
+  updateStats: function() {
+    $('update_button').disabled = true;
+    $('download_info').innerHTML = "<%= h 'Updating stats...'.t %>";
+    new Ajax.Updater('download_info','<%= url_for :action => 'update_stats', :path => @campaign.id %>', 
+                      { evalScripts: true });
+  },
+  
+  updateStatsStatus: function() {
+    new Ajax.Updater('download_info','<%= url_for :action => 'update_stats_status', :path => @campaign.id %>', { evalScripts: true })
+  }
+  
+}
+
+</script>
+<% action_panel do |p| -%>
+  <%= p.link "Download Opened Detail", :action=>'details',:download => 1,:detail_type => 'opened',:path => [ @campaign.id ], :icon => 'download.gif' %>
+  <%= p.link "Download Link Details", :action=>'details',:download => 1,:detail_type => 'clicked',:path => [ @campaign.id ], :icon => 'download.gif' %>
+  <%= p.link "Download Unsubscription Detail", :action=>'details',:download => 1,:detail_type => 'unsubscribed',:path => [ @campaign.id ], :icon => 'download.gif' %>
+<% end -%>
+<hr/>
+<div class='admin_content'>
+  <h2><%= @campaign.name %> <%= "Campaign" .t %></h2>
+  <b><%= h sprintf("Created by %s".t,@campaign.created_by ? @campaign.created_by.name : 'Unknown'.t) %> <%= sprintf("on %s".t, @campaign.created_at.localize("%m/%d/%y".t)) %></b><br/>
+  <b><%= "Campaign Status".t %>: <%= @campaign.status_display %></b><br/><br/>
+  
+  <% if @campaign.sender_type != 'mailing/webiva_sender' -%>
+    <form action='' method='get' id='reload_frm'></form>
+    <button id='update_button' onclick='CampaignViewer.updateStats(); return false;'><%= h "Update Campaign Statistics".t %></button> <span id='download_info'>Last Update:<%= @campaign.stats_downloaded_at ? @campaign.stats_downloaded_at.strftime(DEFAULT_DATETIME_FORMAT.t) : 'Never' %></span><br/><br/>
+  <% end -%>
+
+  <% if @campaign.stat_queue_size > 0 %>
+    <% stat_view do |f| %>
+      <%= f.header 'General Info' %>
+      <%= f.row 'Total Campaign Recipients', @campaign.stat_queue_size %>
+      <%= f.row 'Recipients Processed', sprintf("%d (%2.02f%%)",@campaign.stat_processed,(@campaign.stat_processed * 100 / @campaign.stat_queue_size)) %>
+<% if @campaign.sender_type == 'mailing/webiva_sender' || @campaign.stats_updated_at %>      
+    
+<% end -%>      
+<% if @campaign.sender_type == 'mailing/webiva_sender' || @campaign.stats_updated_at %>      
+      <%= f.row 'Skipped Recipients', @campaign.stat_skipped %>
+      <%= f.row 'Total Emails Sent', @campaign.stat_sent %>
+      <%= f.row 'Delivery Bounces', @campaign.stat_bounced_back %>
+      <% if @campaign.stat_sent > 0 %>
+	<%= f.row 'Successful Deliveries', sprintf("%d (%2.02f%%)",@campaign.stat_delivered,(@campaign.stat_delivered * 100 / @campaign.stat_sent)) %>
+      <% end -%>
+      <% if @campaign.stat_delivered > 0 %>
+	<%= f.header 'Campaign Results' %>
+	<% if @campaign.tracking_image? %>
+	  <%= f.row 'Emails Opened',sprintf("%d (%2.02f%%)",@campaign.stat_opened,(@campaign.stat_opened * 100 / @campaign.stat_delivered)) %>
+	<% else %>
+	  <%= f.row 'Emails Opened','Campaign was sent without a tracking image'.t %>
+	<% end -%>
+	<% if @campaign.track_links? %>
+	  <%= f.row 'Emails Clicked',sprintf("%d (%2.02f%%)",@campaign.stat_clicked,(@campaign.stat_clicked * 100 / @campaign.stat_delivered)) %>
+	<% else %>
+	  <%= f.row 'Emails Clicked','Campaign was sent without tracking links'.t %>
+	<% end -%>
+	<%= f.row 'Unsubscribed',sprintf("%d (%2.02f%%)",@campaign.stat_unsubscribe,(@campaign.stat_unsubscribe * 100 / @campaign.stat_delivered)) %>
+	<%
+	    #f.row 'Reported as SPAM',sprintf("%d (%2.02f%%)",@campaign.stat_abuse,(@campaign.stat_abuse * 100 / @campaign.stat_delivered)) 
+	%>
+      <% end -%>    
+    <% end -%>
+  <% end -%>
+<% end -%>  
+</div>
+<% if @campaign.sender_type == 'mailing/webiva_sender' || @campaign.stats_updated_at %>      
+
+  <br/><br/>
+  <% ajax_tabs [ 'Link Statistics', [ 'Opened Detail','CampaignViewer.loadDetails("opened");'],['Link Details','CampaignViewer.loadDetails("clicked");'],['Bounce Details','CampaignViewer.loadDetails("bounced");'],['Unsubscription Details','CampaignViewer.loadDetails("unsubscribed");'] ], 'Link Statistics' do |t| %>
+    <% t.tab do %>
+      <div class='admin_content'>
+      <%= render :partial => 'link_statistics' %>
+      </div>
+    <% end -%>
+    <% t.tab do %> 
+      <div class='admin_content'>
+        <div id='details_opened'>
+        <%= "Loading Opened Details..".t %>
+        </div>
+      </div>
+    <% end -%>
+    <% t.tab do %> 
+      <div class='admin_content'>
+        <div id='details_clicked'>
+        <%= "Loading Link Details...".t %>
+        </div>
+      </div>
+    <% end -%>
+    <% t.tab do %> 
+      <div class='admin_content'>
+        <div id='details_bounced'>
+        <%= "Loading Bounce Details...".t %>
+        </div>
+      </div>
+    <% end -%>
+    <% t.tab do %>
+      <div class='admin_content'>
+        <div id='details_unsubscribed'>
+        <%= "Loading Unsuscription Details...".t %> 
+        </div>
+      </div>
+    <% end -%>
+ <% end -%>
+<% end -%>
+
+

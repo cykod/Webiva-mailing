@@ -1,0 +1,12 @@
+<% if @campaign.track_links? %>
+  <% table_for @campaign.market_links.find(:all,:order => 'clicked DESC, unique_clicked DESC, link_to'), [ 'Link','Unique Clicks','Total Clicks' ], :class => 'stats_table'  do |t| -%>
+    <tr>
+      <td><%= link_to t.link_to, t.link_to, :target => 'blank'  %></td>
+      <td align='center'><%= t.unique_clicked %></td>
+      <td align='center'><%= t.clicked %></td>
+    </tr>  
+  <% end -%>
+  
+<% else %>
+    <%= "Enable link tracking to view click-through statistics".t %>
+<% end -%>

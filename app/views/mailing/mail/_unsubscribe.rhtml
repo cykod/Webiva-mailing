@@ -1,0 +1,9 @@
+<%= simple_format info_text %>
+<% if !unsubscribed %>
+<% cms_form_for :unsubscribe,unsubscribe, :url => '' do |f| %>
+  <%= f.text_field :email, :label => 'Email to Unsubscribe', :noun => 'Entered Email' %>
+  <%= f.text_area  :reason, :label => 'Reason for Unsubscription', :cols => 40, :rows => 3 %>
+  <%= f.submit_tag 'Unsubscribe' %>
+<% end -%>
+
+<% end -%>

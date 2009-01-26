@@ -1,0 +1,33 @@
+<table width='100%'>
+<tr>
+  <td>
+    <table>
+      <tr><td valign='baseline'><%= "From:".t %></td><td><%= h @from_email %></td></tr>
+      <% if @reply_to_email %>
+      <tr><td valign='baseline'><%= "Reply-To:".t %></td><td><%= h @reply_to_email %></td></tr>
+      <% end -%>
+      <tr><td valign='baseline'><%= "To:".t %></td><td><%= @target[0] %></td></tr>
+      <tr><td valign='baseline'><%= "Subject:".t %></td><td><%= @mail_template.render_subject(@preview_vars) %></td></tr>
+      <tr><td valign='baseline'><%= "Attachments:".t %></td><td>
+        <% if @mail_template.domain_files.length > 0 %>
+          <% @mail_template.domain_files.each do |df| %>
+            <%= link_to df.name, df.url -%><br/>
+          <% end -%>
+        <% else -%>
+          <%= "none".t %>
+        <% end -%>
+      </td></tr>
+    </table>
+  <td>
+  <td valign='top' align='right'>
+    <%= "Last Sent: ".t + @mail_template.last_sent_at.localize(DEFAULT_DATETIME_FORMAT.t) if @mail_template.last_sent_at %>
+  </td>
+</tr>
+</table>
+    <% if @mail_template.body_format == 'both' %>
+      <div align='right'>
+        <a id='preview_html_body_link' class='ajax_link_selected' href='javascript:void(0);' onclick='MailTemplateList.selectBody("html");'><%="HTML Body".t %></a> |
+        <a id='preview_text_body_link' class='ajax_link' href='javascript:void(0);' onclick='MailTemplateList.selectBody("text");'><%="Text Body".t %></a>
+      </div>  
+    <% end -%>
+  

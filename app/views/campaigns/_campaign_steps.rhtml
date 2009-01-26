@@ -1,0 +1,22 @@
+<div class='steps_box'>
+<div align='left'>
+<h4><%= "Create your e-mailing campaign".t %></h4>
+</div>
+<table>
+<tr>
+
+<% wizard_steps @campaign_step, @campaign_max_step do |steps| %>
+  <td><%= steps.step 1,  "Basic Campaign Info".t,url_for( :controller => 'campaigns', :action => :edit, :path => @campaign.id ) %></td>
+  <td> &gt;&gt; </td>
+  <td><%= steps.step 2,  "Campaign Target".t,url_for(:controller => 'campaigns', :action => :segments, :path => @campaign.id )%></td>
+  <td> &gt;&gt; </td>
+  <td><%= steps.step 3,  "Campaign Message".t, url_for(:controller => 'campaigns', :action => :message, :path => @campaign.id ) %></td>
+  <td> &gt;&gt; </td>
+  <td><%= steps.step 4,  "Transmission Options".t, url_for(:controller => 'campaigns', :action => :options, :path => @campaign.id ) %></td>
+  <td> &gt;&gt; </td>
+  <td><%= steps.step 5,  "Confirm & Send".t, url_for(:controller => 'campaigns', :action => :confirm, :path => @campaign.id  )%></td>
+<% end -%>
+</tr>
+</table>
+</div>
+<br/>

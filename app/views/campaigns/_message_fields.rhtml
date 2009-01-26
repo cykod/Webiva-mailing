@@ -1,0 +1,24 @@
+<% if @vars.length > 0 %> 
+  <b><%= "Match Variable values:".t %></b><br/>
+    <div style='border:1px solid #000000; padding:20px;'>
+      <%= "Variable Values:".t %><br/>
+      <table>
+<% @vars.each_with_index do |var,idx| %>
+<tr>
+  <td><%= h var[0] %>:</td>
+  <td><input type='hidden' name='fields[<%= idx %>]' value='<%= vh var[0] %>'/>
+      <select name='values[<%= idx %>]'>
+      <%= options_for_select @available_fields_options, var[1].to_s.downcase %>
+      </select>
+  </td>
+</tr>
+<% end -%>      
+        
+        <tr>
+        <td></td>
+        <td> <input id='field_preview_button' type='submit' onclick='MailTemplateList.updatePreview(); return false;' value='<%= vh "Preview".t %>' /></td>
+      </table>
+      
+    </div>
+   
+<% end -%>

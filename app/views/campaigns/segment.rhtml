@@ -1,0 +1,11 @@
+<div class='admin_content'>
+<%= render :partial => 'campaign_steps' %>
+<form action='' method='post' id='segment_form'>
+<% cms_fields_for :segment, @market_segment do |f| %>
+  <%= f.text_field :name, :vertical => true, :label => 'Name (For your use only)', :noun => 'Name' %>
+  <%= f.text_area :description, :vertical => true, :cols => 50, :rows => 4, :label => 'Private Description' %>
+<% end -%>
+<%= render :partial => 'segment_edit_content_model' %>
+
+</form>
+</div>

@@ -1,0 +1,21 @@
+<div class='admin_content'>
+<h1><%= "Target Matched List".t %></h1>
+<% if @target_count > 1000 %>
+  <%= "Total Recipients:".t +  @target_count.to_s + " (First 1000 are shown)".t %>
+<% else -%>
+  <%= "Total Recipients: ".t +  @target_count.to_s %> 
+<% end -%>
+<br/><br/>
+
+<% table_for @target_list, ['Email','Name'],  :class => 'stats_table'  do |target| %>
+   <tr>
+    <td><%= h target[0] %></td>
+    
+    <% if target[1] %>
+    <td><%= h target[1] %></td>
+   <% else -%>
+    <td align='center'>-</td>
+   <% end -%>
+<% end -%>
+
+</div>

@@ -1,0 +1,120 @@
+<script>
+
+
+  CampaignConfirmation = {
+    sendSample: function() {
+      $('sent_sample').innerHTML = '<%= jh "Sending Sample Email".t %>';
+      $('sent_sample').show();
+      $('send_butt').disabled = true;
+      
+      new Ajax.Request('<%= url_for :action => "send_sample", :path => @campaign.id %>',
+                      {
+                        parameters: { email: $('sample_email').value },
+                        onSuccess: function(req) {
+                          $('sent_sample').innerHTML = '<%= jh "Sent Sample to:".t %>' + $('sample_email').value;
+                          $('sent_sample').show();
+                          $('sample_email').value = '';
+                          $('send_butt').disabled = false;
+                        }
+                       });
+            
+    
+    },
+    
+    sendConfirm: function() {
+      return true;
+    }
+  
+  }
+
+  MailTemplateList = {
+    
+    selectBody: function(body_type) {
+      if(body_type == 'html') {
+        Element.hide('preview_body_text');
+        Element.show('preview_body_html');
+        $('preview_html_body_link').className = 'ajax_link_selected';
+        $('preview_text_body_link').className = 'ajax_link';
+      }
+      else {
+        Element.hide('preview_body_html');
+        Element.show('preview_body_text');
+        $('preview_text_body_link').className = 'ajax_link_selected';
+        $('preview_html_body_link').className = 'ajax_link';
+      }
+    
+    }
+    
+  }
+</script>
+
+
+<div class='admin_content'>
+<%= render :partial => 'campaign_steps' %>
+
+<table width='100%'>
+<tr>
+<td width='350' valign='top' style='padding:0px 20px;'>
+
+    <p>
+      <%= h sprintf("The %s Marking Campaign is ready to be sent. Please confirm all options below and click send to send." ,@campaign.name)  %>
+    </p>
+    <ol class='admin_list'>
+      <li> <%= "Campaign Name:".t %> 
+	  <%= link_to @campaign.name,:controller => 'campaigns', :action => :edit, :path => @campaign.id  %>
+      </li>
+      <li> <%= "Target:".t %> 
+	  <%= link_to @campaign.market_segment.name,:controller => 'campaigns', :action => :segments, :path => @campaign.id  %>
+      </li>
+      <li> <%= "Message:".t %>
+	  <%= link_to @campaign.mail_template.name,:controller => 'campaigns', :action => :message, :path => @campaign.id  %>
+      </li>
+      <li> <%= "Options:".t %>
+	      <a href='<%= url_for :controller => 'campaigns', :action => :options, :path => @campaign.id %>'>
+	      <% if @campaign.sender_type != 'mailing/webiva_sender' %>
+	          <%= @campaign.sender_class.options_description %>
+	      <% else -%>
+		      <%= @campaign.tracking_image? ? "Use Tracking Image".t : "Do Not Use Tracking Image".t %>,
+		      <%= @campaign.track_links? ? "Track Message Links".t : "Do Not Track Message Links".t %>,
+		      <%= @campaign.view_online? ?  "Show View Online Link".t : "Do Not Show View Online Link".t %>
+	      <% end -%>
+	      </a>
+      </li>
+    </ol>
+    <%= "This Campaign will be sent to:".t %> <br/><b><%= @campaign.market_segment.target_count %> <%= "Recipients".t %></b> 
+      (<%= link_to "See Full List".t, { :action => "target_list", :path => @campaign.id}, :popup => ['Target List', 'height=400,width=600'] %>)
+      <br/>
+      <br/>
+      <div style='border:1px solid #CCCCCC; margin:5px; padding:5px; '>
+	<form onsubmit='CampaignConfirmation.sendSample(); return false;'> 
+	    <%= "Send a Sample Email:".t %><br/>
+	    <input type='text' name='email' id='sample_email' value='<%= myself.email %>' /> 
+	    <input id='send_butt' type='submit' value='<%= "Send".t %>'/>
+	    <div><span id='sent_sample' style='display:none;'></span>&nbsp;
+	    </div>
+	</form>
+      </div>
+    
+    
+      <br/><br/>
+      <div align='center' style='margin:5px;'>
+	<form action='' method='post' onsubmit='return CampaignConfirmation.sendConfirm();' >
+	  <input type='hidden' name='send_campaign' value='1' />
+	<input type='submit' value='<%= "Send Campaign!".t %>' style='padding:5px;'  />
+	</form>
+      </div>
+    
+    
+  </td>
+  <td valign='top' style='padding-right:20px;'>
+      <b><%= "Preview Campaign Message".t %></b><br/>
+      <div  id='preview_template' style='border:1px solid#000000;'>
+	<%= render :partial => 'preview_template' %>
+  
+  </td>
+</tr>
+</table>
+
+</div>
+
+</div>

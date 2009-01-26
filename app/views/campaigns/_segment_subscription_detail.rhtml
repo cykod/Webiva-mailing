@@ -1,0 +1,26 @@
+<table>
+<tr>
+  <td colspan='2'>
+  <b><%= market_segment.name %></b><br/>
+  </td>
+</tr>
+<tr>
+  <td><%= "Created:".t %></td>
+  <td><%= market_segment.created_at.localize(DEFAULT_DATETIME_FORMAT.t) %></td>
+</tr>
+<tr>
+  <td><%= "Last Sent:".t %></td>
+  <td><%= market_segment.last_sent_at ? market_segment.last_sent_at.localize(DEFAULT_DATETIME_FORMAT.t) : "Never Sent".t %>
+</tr>
+<tr>
+  <td><%= "Members:".t %></td>
+  <td><a href='javascript:void(0);' onclick="openWindow('<%= url_for :action => 'segment_view_list', :path => market_segment.id %>','SegmentList',400,400,'no','no');">
+      <%= sprintf("%d Members".t,market_segment.target_count)  %>
+      </a>
+  </td>
+ </tr>
+ <tr>
+  <td><%= "Unsubscribed:".t %></td>
+  <td><%= market_segment.user_subscription.unsubscribed_entries.count %></td>
+ </tr>
+ </table>

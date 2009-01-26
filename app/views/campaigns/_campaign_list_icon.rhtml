@@ -1,0 +1,5 @@
+    <% if !campaign.under_construction? && campaign.stat_queue_size > 0 %>
+    <%= sparkline_tag [ campaign.stat_processed_percentage ], { :type => 'pie', :background_color => '#FFFFFF' },  { :align=>'absmiddle' } %>
+    <% else -%>
+      -
+    <% end -%>
