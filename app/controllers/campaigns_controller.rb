@@ -8,6 +8,11 @@ class CampaignsController < ModuleController
   
   component_info 'Mailing'
   
+  skip_before_filter :context_translate_before, :only => [ :view, :link, :image ]
+  skip_after_filter :context_translate_after, :only => [ :view, :link, :image ]
+  skip_before_filter :check_ssl, :only => [ :view, :link, :image ]
+  skip_before_filter :validate_is_editor, :only => [ :view, :link, :image ]
+  
   helper :campaigns
   include CampaignsHelper
   
@@ -56,19 +61,19 @@ class CampaignsController < ModuleController
       @user = EndUser.find_visited_target(@queue.email)
       
       if !@queue.opened?
-	@queue.reload(:lock => true)
+	      @queue.reload(:lock => true)
 	
-	if !@queue.opened?
-	  @campaign.reload(:lock => true)
-	  # Update the number of openings
-	  @campaign.stat_opened += 1
-	  # and we know this queue entry has opened the mail
-	  @queue.opened_at = Time.now
-	  @queue.opened = true
+	      if !@queue.opened?
+	        @campaign.reload(:lock => true)
+	        # Update the number of openings
+	        @campaign.stat_opened += 1
+	        # and we know this queue entry has opened the mail
+	        @queue.opened_at = Time.now
+	        @queue.opened = true
 	
-	  @campaign.save
-	  @queue.save
-	end
+	        @campaign.save
+	        @queue.save
+	      end
       end
     
     end
