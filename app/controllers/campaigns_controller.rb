@@ -529,7 +529,7 @@ class CampaignsController < ModuleController
           end
           @campaign.edited_at = Time.now
           @campaign.save
-          redirect_to :controller => :mail_manager, :action=>:edit_template, :path => [ @campaign.mail_template_id, @campaign.id ] 
+          redirect_to :controller => :mail_manager, :action=>:edit_template, :path => [ @campaign.mail_template_id || 0, @campaign.id ] 
         else
           @campaign.mail_template_id =params[:message]
           @campaign.edited_at = Time.now
