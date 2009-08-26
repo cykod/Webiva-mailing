@@ -29,7 +29,7 @@ class Mailing::MailRenderer < ParagraphRenderer
     
     @text = modifier[:unsubscribe_text] || DEFAULT_UNSUBSCRIBE_TEXT.t
     
-    if request.post? && params[:unsubscribe]
+    if request.post? && params[:unsubscribe] && !params[:unsubscribe][:email].blank?
       
       @unsubscribe.unsubscribed_ip = request.remote_ip
       @unsubscribe.unsubscribed_at = Time.now

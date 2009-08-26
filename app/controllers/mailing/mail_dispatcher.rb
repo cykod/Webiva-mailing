@@ -3,7 +3,8 @@ class Mailing::MailDispatcher < ModuleDispatcher
   
 
   available_pages ['/verify', 'verify', 'Verify Subscription', 'Verify Subscription',false],
-                  ['/unsubscribe', 'unsubscribe', 'Unsubscribe', 'Unsubscribe',false]
+                  ['/unsubscribe', 'unsubscribe', 'Unsubscribe', 'Unsubscribe',false],
+                  ['/','unsubscribe','Unsubscribe','Unsubscribe',false]
                   
                   
   
