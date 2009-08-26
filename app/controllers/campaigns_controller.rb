@@ -198,6 +198,7 @@ class CampaignsController < ModuleController
   end
   
   def image
+    begin
     campaign_hash = params[:campaign_hash]
     queue_hash = params[:queue_hash]
     
@@ -221,6 +222,9 @@ class CampaignsController < ModuleController
       @queue.save
 
       send_file @campaign.tracking_image_filename, :disposition => 'inline'
+    end
+    rescue InvalidPageDataException => e
+     render :nothing => true 
     end
   
     
