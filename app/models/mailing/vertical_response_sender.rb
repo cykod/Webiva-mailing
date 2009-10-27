@@ -409,10 +409,15 @@ class Mailing::VerticalResponseSender
     validates_datetime :send_on, :allow_nil => true
   
     def validate
-    
-      if !self.send_on.blank? &&  self.send_on < Time.now
+
+      begin
+        if !self.send_on.blank? &&  self.send_on.to_time < Time.now
+          errors.add(:send_on,'must be a time in the future')
+        end
+      rescue
         errors.add(:send_on,'must be a time in the future')
       end
+        
     end
   end
   
