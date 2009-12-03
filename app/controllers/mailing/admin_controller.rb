@@ -55,7 +55,7 @@ class Mailing::AdminController < ModuleController
     @options = Configuration.get_config_model(ModuleOptions,params[:options])
     
     
-    @handlers = get_handler_info(:mailing,:sender)
+    @handlers = get_handler_info(:mailing,:sender,nil,true)
     
     # Get each of the handler option models
     @handlers.each do |handler|
@@ -85,7 +85,7 @@ class Mailing::AdminController < ModuleController
       end
     end    
 
-    @senders = get_handler_options(:mailing,:sender)
+    @senders = get_handler_options(:mailing,:sender,true)
   end
   
 
