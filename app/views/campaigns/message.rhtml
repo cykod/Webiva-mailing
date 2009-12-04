@@ -62,7 +62,7 @@
 <div class='admin_content'>
 <%= render :partial => 'campaign_steps' %>
 
-<form action='' id='campaign_template_form' method='post'>
+<%= form_tag('',:id => 'campaign_template_form') -%>
 <input type='hidden' name='edit' id='edit_template' value='0'/>
 <table width='100%'>
 <tr>

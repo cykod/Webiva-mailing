@@ -6,7 +6,7 @@
 <%= "You can change the location and url of the mail module later if necessary.".t %>
 </p>
 <br/>
-<form action='' method='post'>
+<%= form_tag -%>
   <input type='hidden' name='add_module' value='1' />
   <input type='submit' name='go' value='<%= "Add Mail Module".t %>'/>
 </form>

@@ -98,7 +98,7 @@
     
       <br/><br/>
       <div align='center' style='margin:5px;'>
-	<form action='' method='post' onsubmit='return CampaignConfirmation.sendConfirm();' >
+        <%= form_tag('', :onsubmit=>'return CampaignConfirmation.sendConfirm();') -%>
 	  <input type='hidden' name='send_campaign' value='1' />
 	<input type='submit' value='<%= "Send Campaign!".t %>' style='padding:5px;'  />
 	</form>

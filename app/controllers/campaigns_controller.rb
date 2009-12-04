@@ -73,6 +73,7 @@ class CampaignsController < ModuleController
 	
 	        @campaign.save
 	        @queue.save
+                
 	      end
       end
     
@@ -240,8 +241,9 @@ class CampaignsController < ModuleController
     end
       
     if request.post?
-        @site_root = SiteNode.get_root_folder
-        @site_root.children.create(:node_type => 'M', :title => 'mail', :module_name => '/mailing/mail')
+        @site_root = SiteVersion.default.root_node
+        @page = @site_root.add_subpage('mail','M')
+        @page.update_attributes( :module_name => '/mailing/mail')
 	redirect_to :action => 'index'
 	return
     end

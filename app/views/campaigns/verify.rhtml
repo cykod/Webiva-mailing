@@ -1,6 +1,6 @@
 <div align='center'>
 <div style='width:450px; margin:70px 0px; padding:10px 20px; background-color: #F79239; color:#FFFFFF; text-align:left;'>
-  <form action='' method='post'>
+  <%= form_tag -%>
   <h1><%= "Confirmation".t %></h1>
   <p><%= "You have clicked on the \"Send Campaign\" button, but before your send this campaign, we require that you indicate your mailing is being sent in compliance with the CAN-SPAM Act and any additional laws that may apply to sending commercial emails.".t %>
   </p>
@@ -12,8 +12,8 @@
   <% end -%>
   <p><label for='send_campaign_check'><input type='checkbox' id='send_campaign_check' name='send_campaign' value='1'/>
       <%= "Please check this box to indidate that your mailing complies with all applicable state and federal laws.".t %></label><br/><br/>
-      <a target='_blank' href='<%= "http://www.ftc.gov/bcp/conline/pubs/buspubs/canspam.shtm".t %>'>
-        <%= "CAN-SPAM: http://www.ftc.gov/bcp/conline/pubs/buspubs/canspam.shtm".t %>
+      <a target='_blank' href='<%= "http://www.ftc.gov/bcp/edu/pubs/business/ecommerce/bus61.shtm".t %>'>
+        <%=  "CAN-SPAM: http://www.ftc.gov/bcp/edu/pubs/business/ecommerce/bus61.shtm ".t %>
       </a>
   </p>
   <p align='center'>

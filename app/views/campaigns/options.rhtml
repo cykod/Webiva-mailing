@@ -4,7 +4,7 @@
 <table cellpadding='10'>
 <tr>
   <td valign='top'> 
-<form method='post' class='admin_form'>
+<%= form_tag('',:class => 'admin_form') -%>
 
 <h4><%= "From Email Addresses".t %></h4>
 <% fields_for :campaign, @campaign do |f| %>
