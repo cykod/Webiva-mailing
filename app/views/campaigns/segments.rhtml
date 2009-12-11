@@ -76,7 +76,7 @@
 <b><%="Select the target type:".t %></b>
 <a id='subscription_link' class='<%= !@campaign.market_segment || @campaign.market_segment.segment_type == 'subscription' ? 'large_ajax_link_selected' : 'large_ajax_link' %>' href='javascript:void(0);' onclick="SegmentList.selectType('subscription');"><%= "Subscriptions".t %></a>&nbsp;
 <a id='members_link' class='<%= @campaign.market_segment && @campaign.market_segment.segment_type == 'members' ? 'large_ajax_link_selected' : 'large_ajax_link' %>' href='javascript:void(0);' onclick="SegmentList.selectType('members');"><%= "Target Segmentation".t %></a>&nbsp;
-<a id='content_model_link' class='<%= @campaign.market_segment && @campaign.market_segment.segment_type == 'content_model' ? 'large_ajax_link_selected' : 'large_ajax_link' %>'  href='javascript:void(0);' onclick="SegmentList.selectType('content_model');"><%= "Special Import".t %></a>
+<a id='content_model_link' class='<%= @campaign.market_segment && (@campaign.market_segment.segment_type == 'content_model' || @campaign.market_segment.segment_type =='custom')  ? 'large_ajax_link_selected' : 'large_ajax_link' %>'  href='javascript:void(0);' onclick="SegmentList.selectType('content_model');"><%= "Special Import".t %></a>
 <br/><br/>
   <div id='subscription_market_segment' <%= "style='display:none;'" unless !@campaign.market_segment || @campaign.market_segment.segment_type == 'subscription' %>>
   <%= render :partial => 'segment_subscription' %>
@@ -85,7 +85,7 @@
 <%= render :partial => 'segment_members' %>
 </div>
 
-<div id='content_model_market_segment' <%= "style='display:none;'" unless @campaign.market_segment && @campaign.market_segment.segment_type == 'content_model' %>>
+<div id='content_model_market_segment' <%= "style='display:none;'" unless @campaign.market_segment && (@campaign.market_segment.segment_type == 'content_model' || @campaign.market_segment.segment_type =='custom') -%>>
 <%= render :partial => 'segment_content_model' %>
 </div>
 

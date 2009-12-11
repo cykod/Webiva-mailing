@@ -82,7 +82,7 @@
       </li>
     </ol>
     <%= "This Campaign will be sent to:".t %> <br/><b><%= @campaign.market_segment.target_count %> <%= "Recipients".t %></b> 
-      (<%= link_to "See Full List".t, { :action => "target_list", :path => @campaign.id}, :popup => ['Target List', 'height=400,width=600'] %>)
+      (<%= link_to "See Full List".t, { :action => "target_list", :path => @campaign.id}, :popup => ['Target List', 'height=400,width=600,scrollbars=yes'] %>)
       <br/>
       <br/>
       <div style='border:1px solid #CCCCCC; margin:5px; padding:5px; '>

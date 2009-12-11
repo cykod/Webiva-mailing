@@ -28,6 +28,13 @@ class MarketCampaign < DomainModel
                          ['Sent','completed']
                        ]
   QUEUE_WINDOW_SIZE = 1000
+
+  def self.create_custom_campaign(name,user_ids)
+    campaign = self.create(:name => name,:campaign_type=>'email',:data_model => 'members')
+    segment = MarketSegment.create_custom(campaign,user_ids)
+    campaign.update_attribute(:market_segment_id, segment.id)
+    campaign
+  end
   
   def after_create
     self.identifier_hash = create_hash(self.name + self.id.to_s)

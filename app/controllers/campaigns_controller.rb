@@ -413,9 +413,9 @@ class CampaignsController < ModuleController
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
     
-    @subscription_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="subscription" AND market_campaign_id IS NULL or market_campaign_id=?',@campaign.id])
-    @members_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="members" AND market_campaign_id IS NULL or market_campaign_id=?',@campaign.id])
-    @content_model_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="content_model" AND market_campaign_id IS NULL or market_campaign_id=?',@campaign.id])
+    @subscription_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="subscription" AND (market_campaign_id IS NULL or market_campaign_id=?)',@campaign.id])
+    @members_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="members" AND (market_campaign_id IS NULL or market_campaign_id=?)',@campaign.id])
+    @content_model_segments = MarketSegment.find(:all,:conditions => [ '(segment_type="content_model" OR segment_type="custom") AND (market_campaign_id IS NULL or market_campaign_id=?)',@campaign.id])
     
     if request.post? && params[:segment]
       @campaign.market_segment_id = params[:segment]
@@ -423,13 +423,15 @@ class CampaignsController < ModuleController
         @campaign.data_model = 'subscription'
       elsif @campaign.market_segment.segment_type == 'members'
         @campaign.data_model = 'members'
+      elsif @campaign.market_segment.segment_type == 'custom'
+        @campaign.data_model = 'members'
       else
         market_segment = MarketSegment.find(@campaign.market_segment_id)
         @campaign.data_model = market_segment.options[:content_model_id]
       end      
       @campaign.edited_at = Time.now
       @campaign.save
-      if params[:edit]
+      if params[:edit] && @campaign.market_segment.segment_type == 'content_model'
         redirect_to :action => 'segment', :path => [ @campaign.id, @campaign.market_segment_id ]
       else
         redirect_to :action => 'message', :path => @campaign.id
