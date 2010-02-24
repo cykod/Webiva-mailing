@@ -18,6 +18,8 @@ class Mailing::AdminController < ModuleController
   
   register_handler :navigation, :emarketing, "Mailing::AdminController"
   
+  register_handler :mail_template, :edit, 'CampaignsController'
+
   cms_admin_paths "options",
                   'Content' => { :controller => '/content' },
                   'Options' =>   { :controller => '/options' },

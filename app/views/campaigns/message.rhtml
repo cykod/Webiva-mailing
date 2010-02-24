@@ -28,6 +28,7 @@
 	  $('message_info').innerHTML = '';
 	  $('delete_segementation').hide();
           $('edit_message_option').hide();
+          Element.hide('buttons');
 	  this.selectedMailTemplate= null;
 	}
       }
@@ -71,7 +72,7 @@
     <%= options_for_select @mail_templates.collect() { |seg| [ seg.name,seg.id ] }, @campaign.mail_template_id  %>
   </select>
   <br/>
-  <a href='<%= url_for :controller => :mail_manager, :action=>:edit_template, :path => [ 0, @campaign.id ]  %>'><%='create'.t %></a>&nbsp;&nbsp;
+  <a href='<%= url_for :controller => :mail_manager, :action=>:edit_template, :path => [0], :return => CampaignsController.to_s.underscore, :return_id => @campaign.id  %>'><%='create'.t %></a>&nbsp;&nbsp;
   <span id='selected_template_links' <%= "style='display:none;'" unless @campaign.mail_template %> >
   <a href='javascript:void(0);' onclick='MailTemplateList.editTemplate("edit");'><%= "modify".t %></a>  &nbsp;&nbsp;
   <a href='javascript:void(0);' onclick='MailTemplateList.editTemplate("duplicate");'><%= "duplicate".t %></a>
@@ -90,7 +91,7 @@
   </div>
 </td>
 <td valign='top' style='padding-right:20px; padding-top:12px;'>
-<div id="buttons" style="text-align:center; padding:15px 0; width: 160px; background-color:#eee;">
+<div id="buttons" style="text-align:center; padding:15px 0; width: 160px; background-color:#eee; <%= "display:none;" unless @campaign.mail_template %>">
 <a class="link_button" href="<%= url_for :action => 'campaign', :path => @campaign.id %>"><%= 'Previous'.t %></a>
 &nbsp;
 <a class="link_button" href="javascript:void(0);" onclick="$('campaign_template_form').submit();">Next</a>

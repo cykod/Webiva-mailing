@@ -533,7 +533,7 @@ class CampaignsController < ModuleController
           @campaign.edited_at = Time.now
 	  @campaign.status = 'setup'
           @campaign.save
-          redirect_to :controller => :mail_manager, :action=>:edit_template, :path => [ @campaign.mail_template_id || 0, @campaign.id ] 
+          redirect_to :controller => :mail_manager, :action=>:edit_template, :path => [ @campaign.mail_template_id || 0, @campaign.id ], :return => self.class.to_s.underscore, :return_id => @campaign.id
         else
           @campaign.mail_template_id =params[:message]
           @campaign.edited_at = Time.now
@@ -852,5 +852,25 @@ class CampaignsController < ModuleController
     @preview_vars.merge!(@campaign.add_tracking_links(tracking_variables,'QUEUE'))
     
     @campaign.add_delivery_variables(@preview_vars)
+  end
+
+  public
+
+  def self.mail_template_edit_handler_info
+    {
+      :name => 'Campaigns Controller',
+      :partial => '/campaigns/mail_template_edit',
+      :template_type => 'campaign'
+    }
+  end
+
+  def self.mail_template_cms_path(controller)
+    [[ "E-marketing", ['Email Campaigns', controller.url_for(:controller => 'campaigns', :action => 'index')]], "Edit Mail Template"]
+  end
+
+  def self.mail_template_save(mail_template, controller)
+    campaign = MarketCampaign.find_by_id(controller.params[:return_id])
+    campaign.update_attributes(:mail_template_id => mail_template.id)
+    controller.url_for(:controller => 'campaigns', :action => 'message', :path => [campaign.id])
   end
 end

@@ -1,15 +1,20 @@
+<%
+campaign_id ||= @campaign.id
+campaign_step ||= @campaign_step
+campaign_max_step ||= @campaign_max_step
+-%>
 <div class='steps_box'>
 <div align='left'>
 <h4><%= "Create your e-mailing campaign".t %></h4>
 </div>
 <table>
 <tr>
-<% wizard_steps @campaign_step, @campaign_max_step do |steps| %>
-  <td><%= steps.step 1,  "Setup and Targets".t,url_for( :controller => 'campaigns', :action => :campaign, :path => @campaign.id ) %></td>
+<% wizard_steps campaign_step, campaign_max_step do |steps| %>
+  <td><%= steps.step 1,  "Setup and Targets".t,url_for( :controller => 'campaigns', :action => :campaign, :path => campaign_id ) %></td>
   <td> &gt;&gt; </td>
-  <td><%= steps.step 2,  "Message".t, url_for(:controller => 'campaigns', :action => :message, :path => @campaign.id ) %></td>
+  <td><%= steps.step 2,  "Message".t, url_for(:controller => 'campaigns', :action => :message, :path => campaign_id ) %></td>
   <td> &gt;&gt; </td>
-  <td><%= steps.step 3,  "Confirm & Send".t, url_for(:controller => 'campaigns', :action => :confirm, :path => @campaign.id  )%></td>
+  <td><%= steps.step 3,  "Confirm & Send".t, url_for(:controller => 'campaigns', :action => :confirm, :path => campaign_id  )%></td>
 <% end -%>
 </tr>
 </table>
