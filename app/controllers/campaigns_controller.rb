@@ -869,8 +869,12 @@ class CampaignsController < ModuleController
   end
 
   def self.mail_template_save(mail_template, controller)
-    campaign = MarketCampaign.find_by_id(controller.params[:return_id])
-    campaign.update_attributes(:mail_template_id => mail_template.id)
-    controller.url_for(:controller => 'campaigns', :action => 'message', :path => [campaign.id])
+    campaign = MarketCampaign.find(controller.params[:return_id])
+    if campaign.status == 'created' || campaign.status == 'setup'
+      campaign.update_attributes(:mail_template_id => mail_template.id, :status => 'created')
+      controller.url_for(:controller => 'campaigns', :action => 'message', :path => [campaign.id])
+    else
+      controller.url_for(:controller => 'campaigns', :action => 'index')
+    end
   end
 end

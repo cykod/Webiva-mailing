@@ -13,7 +13,7 @@ module CampaignsHelper
  def setup_campaign_steps
     if !@campaign.id 
       @campaign_max_step = 1
-    elsif !@campaign.mail_template || !@campaign.market_campaign_message
+    elsif @campaign.status != 'setup'
       @campaign_max_step = 2
     else
       @campaign_max_step = 3

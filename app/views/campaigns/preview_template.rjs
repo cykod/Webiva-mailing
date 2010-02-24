@@ -13,8 +13,6 @@ when 'text'
   page.show 'preview_body_text'
 end
 
-page.show 'selected_template_links'
-
 if @mail_template.is_html
   page <<  "$('preview_iframe').contentWindow.document.open()"
   txt = ''
@@ -28,3 +26,4 @@ if @mail_template.is_text
   page.replace_html "preview_body_text", simple_format(@mail_template.render_text(@preview_vars))
 end
 
+page.replace_html 'preview_template_name', @mail_template.name

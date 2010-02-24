@@ -4,9 +4,12 @@
     selectedMailTemplate: <%=  @campaign.mail_template ? @campaign.mail_template_id : 0 %>,
     
     selectMailTemplate: function(message_id) {
-      
-      new Ajax.Request("<%= url_for :action => 'preview_template', :path => [@campaign.id ] %>/" + message_id);
-      this.selectedMailTemplate= message_id;
+      if(message_id == 'create') {
+        document.location = "<%= url_for :controller => :mail_manager, :action=>:edit_template, :return => CampaignsController.to_s.underscore, :return_id => @campaign.id  %>";
+      } else {
+        new Ajax.Request("<%= url_for :action => 'preview_template', :path => [@campaign.id ] %>/" + message_id);
+        this.selectedMailTemplate= message_id;
+      }
     },
     
     updatePreview: function() {
@@ -67,16 +70,10 @@
 <table width='100%'>
 <tr>
 <td width='350' valign='top' style='padding:0px 20px;'>
-  <b><%= "Select an Mail Template:".t %></b><br/>
+  <b><%= "Select a Mail Template:".t %></b><br/>
   <select name='message' id='messages' size='10' style='width:350px;' onchange='MailTemplateList.selectMailTemplate(this.value);' >
-    <%= options_for_select @mail_templates.collect() { |seg| [ seg.name,seg.id ] }, @campaign.mail_template_id  %>
+    <%= options_for_select [['<---Create a Mail Template--->', 'create']] + @mail_templates.collect() { |seg| [ seg.name,seg.id ] }, @campaign.mail_template_id  %>
   </select>
-  <br/>
-  <a href='<%= url_for :controller => :mail_manager, :action=>:edit_template, :path => [0], :return => CampaignsController.to_s.underscore, :return_id => @campaign.id  %>'><%='create'.t %></a>&nbsp;&nbsp;
-  <span id='selected_template_links' <%= "style='display:none;'" unless @campaign.mail_template %> >
-  <a href='javascript:void(0);' onclick='MailTemplateList.editTemplate("edit");'><%= "modify".t %></a>  &nbsp;&nbsp;
-  <a href='javascript:void(0);' onclick='MailTemplateList.editTemplate("duplicate");'><%= "duplicate".t %></a>
-  </span>
   <br/><br/>
   <div id='match_variables' <%= "style='display:none;'" unless @campaign.mail_template %> >
     <%= render :partial => 'message_fields' if @campaign.mail_template %>
@@ -84,8 +81,13 @@
 </td>
 <td valign='top' style='padding-right:20px;'>
   <div id='preview_container' <%="style='display:none;'" unless @campaign.mail_template %> >
-    <b><%= "Preview Template".t %></b><br/>
-    <div  id='preview_template' style='border:1px solid#000000;'>
+    <b><%= "Preview Template:".t %></b>
+    <div id="preview_heading" style='padding:5px 0;'>
+      <span id="preview_template_name" style='font-size:12px; font-weight:bold;'><%= @campaign.mail_template.name if @campaign.mail_template %></span>
+      <a href='javascript:void(0);' onclick='MailTemplateList.editTemplate("edit");'><%= "modify".t %></a> |
+      <a href='javascript:void(0);' onclick='MailTemplateList.editTemplate("duplicate");'><%= "duplicate".t %></a>
+    </div>
+    <div id='preview_template' style='border:1px solid#000000;'>
       <%= render :partial => 'preview_template' %>
     </div>
   </div>
