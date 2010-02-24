@@ -1,30 +1,13 @@
-<script>
-  ContentModelSegmentEditor = {
-    updateOptions: function() {
-      params=$H({ content_model_id: $('segment[options]_content_model_id').value });
-      
-      new Ajax.Updater('content_model_options',
-			"<%= url_for :action => 'update_content_model_options', :path => [ @campaign.id ] %>",
-			{
-			  parameters: params.toQueryString()
-			}
-		      );
-    }
-  }
-</script>
-
 <% cms_fields_for 'segment[options]', @options_model  do |f| %>
-<%= f.select :content_model_id, [ [ '--Select Content Model--',nil ] ] + ContentModel.find_select_options(:all,:order => 'name'), { :label => 'Content Model' }, :onchange => 'ContentModelSegmentEditor.updateOptions();'  %>
+<%= f.select :content_model_id, [ [ '--Select Content Model--',nil ] ] + ContentModel.find_select_options(:all,:order => 'name'), { :label => 'Content Model' }, :onchange => 'ContentModelSegmentEditor.updateOptions(this.value);'  %>
 <% end -%>
 
-
 <div id='content_model_options'>
-<% if @content_model %>  
+<% if @content_model %>
   <%= render :partial => 'segment_edit_content_model_detail' %>
 <% end -%>
 </div>
 
-
-<% cms_fields_for 'segment[options]', @options_model  do |f| %>
-  <%= f.submit_cancel_tags 'Back', 'Next', { :onclick => "document.location = '#{url_for :action => "segments", :path => @campaign.id, :back => 1 }'; return false;" }, {}%>
+<% cms_fields_for 'segment[options]', @options_model do |f| %>
+  <%= f.submit_cancel_tags 'Cancel', 'Submit', { :onclick => "SegmentList.cancelSegment(); return false;" }, {}%>
 <% end -%>

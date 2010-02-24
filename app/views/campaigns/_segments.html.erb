@@ -1,0 +1,49 @@
+<% cms_subfields_for :campaign, @campaign do |f| -%>
+  <% cms_subfields_for :segment, @segment  do |sf| -%>
+
+<tr><td colspan='2' style='padding: 10px 0;'><h2><%= 'Targets'.t %></h2></td></tr>
+
+<tr><td><h4><%= 'Select the target type'.t %></h4></td>
+
+<td style='border:1px solid #000000; width:300px; margin:0px 5px; padding:5px;' valign='top' rowspan='4'>
+  <div id='segment_info'>
+<%=
+if @campaign.market_segment && @campaign.market_segment.segment_type == @segment.segment_type
+  case @campaign.market_segment.segment_type
+  when 'members'
+    render :partial => 'segment_members_detail', :locals => { :market_segment => @campaign.market_segment }
+  when 'subscription'
+    render :partial => 'segment_subscription_detail', :locals => { :market_segment => @campaign.market_segment }
+  else
+    render :partial => 'segment_content_model_detail', :locals => { :market_segment => @campaign.market_segment }
+  end
+end 
+-%>
+  </div>
+</td>
+
+</tr>
+
+<tr>
+<td>
+<%= sf.radio_buttons :segment_type, @segment_types, :unstyled => true, :separator => '<br/>', :onchange => 'SegmentList.selectType(this.value);' -%>
+</td>
+</tr>
+<% end -%>
+
+<tr><td style='padding-top:10px;'><h4><%= 'Select targets'.t %></h4></td></tr>
+<tr><td>
+<% if @campaign.errors.invalid?(:market_segment_id) -%>
+  <span class='error'><%= @campaign.errors.on(:market_segment_id) %></span><br/>
+<% end -%>
+<%
+  segment_choices = @segments.collect() { |seg| [ seg.name,seg.id ] }
+  if @segment.segment_type == 'content_model'
+    segment_choices << ['<---Create a new segment--->', 'new']
+  end
+%>
+<%= f.select(:market_segment_id, segment_choices, {}, {:unstyled => true, :size => 10, :style => 'width:300px; border:1px solid #000000;', :onchange => 'SegmentList.selectSegment(this.value);'}) -%>
+</td></tr>
+
+
+<% end -%>

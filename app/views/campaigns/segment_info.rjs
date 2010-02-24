@@ -1,12 +1,12 @@
 case @segment.segment_type
 when 'subscription':
-  page.replace_html 'subscription_segment_info', :partial => 'segment_subscription_detail', :locals => { :market_segment => @segment }
+  page.replace_html 'segment_info', :partial => 'segment_subscription_detail', :locals => { :market_segment => @segment }
 when 'members':
-  page.replace_html 'members_segment_info', :partial => 'segment_members_detail', :locals => { :market_segment => @segment }
+  page.replace_html 'segment_info', :partial => 'segment_members_detail', :locals => { :market_segment => @segment }
 when 'custom'
-  page.replace_html 'content_model_segment_info', :partial => 'segment_members_detail', :locals => { :market_segment => @segment }
+  page.replace_html 'segment_info', :partial => 'segment_members_detail', :locals => { :market_segment => @segment }
 when 'content_model':
-  page.replace_html 'content_model_segment_info', :partial => 'segment_content_model_detail', :locals => { :market_segment => @segment }
+  page.replace_html 'segment_info', :partial => 'segment_content_model_detail', :locals => { :market_segment => @segment }
 else
   page << 'alert("Unsupported Segment Type!");'
 end

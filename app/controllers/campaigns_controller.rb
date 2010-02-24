@@ -18,6 +18,13 @@ class CampaignsController < ModuleController
   
   before_filter :verify_mail_module, :except => 'missing_mail_module'
   
+  cms_admin_paths "e_marketing",
+                  'Content' => { :controller => '/content' },
+                  'Options' =>   { :controller => '/options' },
+                  'Modules' =>  { :controller => '/modules' },
+                  'E-marketing' => { :controller => 'emarketing' },
+                  'Email Campaigns' => { :action => 'index' }
+
   def verify_mail_module
   
     if !check_mail_module
@@ -234,7 +241,8 @@ class CampaignsController < ModuleController
   
   
   def missing_mail_module
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Missing Mail Module' ],'e_marketing' )
+    cms_page_path ['E-marketing','Email Campaigns'], 'Missing Mail Module'
+
     if check_mail_module
       redirect_to :action => 'index'
       return
@@ -286,16 +294,14 @@ class CampaignsController < ModuleController
   end
 
   def index
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], 'Email Campaigns'],'e_marketing' )
+    cms_page_path ['E-marketing'], 'Email Campaigns'
     
     page = params[:page] || 1
     
     display_campaign_table(false)
-    
   end
   
   def update_campaigns
-    
     @campaigns = params[:cid].collect do |cid|
       MarketCampaign.find_by_id(cid)
     end
@@ -350,98 +356,90 @@ class CampaignsController < ModuleController
       true
     end
   end
-  
 
-  def new
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'New Campaign' ],'e_marketing' )
-    
-    @campaign = MarketCampaign.new(:created_by => myself, 
-                                   :created_at => Time.now)
+  def campaign
+    opts = Mailing::AdminController.module_options(params[:options])
 
-    opts = Configuration.get_config_model(Mailing::AdminController::ModuleOptions,params[:options])
+    if params[:path] && params[:path][0]
+      @campaign = MarketCampaign.find(params[:path][0])
+      @campaign.sender_type = opts.default_sender if @campaign.sender_type.blank? || !opts.enabled_senders.include?(@campaign.sender_type)
+    else
+      @campaign = MarketCampaign.new(:created_by => myself, :created_at => Time.now, :sender_type => opts.default_sender)
+    end
+
+    if @campaign.id
+      return unless verify_campaign_setup
+    end
+
+    cms_page_path ['E-marketing', 'Email Campaigns'], @campaign.id ? 'Edit Campaign' : 'New Campaign'
+
     @senders = get_handler_options(:mailing,:sender).find_all { |opt| opts.enabled_senders.include?(opt[1]) }
                                    
+    if @campaign.sender_class.respond_to?('send_options')
+     @send_options = @campaign.sender_class.send_options(params[:campaign_options] || (@campaign.sender_data || {})[:options]) 
+    end
+
     if request.post? && params[:campaign]
-      opts = Configuration.get_config_model(Mailing::AdminController::ModuleOptions,params[:options])
-    
-      @campaign.created_by = myself
-      @campaign.campaign_type = 'email'
+      @campaign.created_by = myself unless @campaign.id
+      @campaign.campaign_type = 'email' unless @campaign.id
+
+      @campaign.sender_data ||= {}
+      @campaign.sender_data[:options] = @send_options.to_h if @send_options
+
       @campaign.edited_at = Time.now
-      @campaign.sender_type = opts.default_sender
-      if @campaign.update_attributes(params[:campaign])
-        redirect_to :action => 'segments',:path => @campaign.id
+      @campaign.attributes = params[:campaign]
+
+      @campaign.valid?
+
+      if @campaign.market_segment
+	if @campaign.market_segment.segment_type == 'subscription'
+	  @campaign.data_model = 'subscription'
+	elsif @campaign.market_segment.segment_type == 'members'
+	  @campaign.data_model = 'members'
+	elsif @campaign.market_segment.segment_type == 'custom'
+	  @campaign.data_model = 'members'
+	else
+	  market_segment = MarketSegment.find(@campaign.market_segment_id)
+	  @campaign.data_model = market_segment.options[:content_model_id]
+	end
+	@campaign.errors.add(:market_segment_id, 'Target has no members') if @campaign.market_segment.target_count == 0
+      else
+	@campaign.errors.add(:market_segment_id, 'Target is missing') if @campaign.name
+      end
+
+      if @campaign.errors.length == 0 && @campaign.save
+        redirect_to :action => 'message', :path => @campaign.id
         return
       end
     end
-    
-    
+
+    segments(false)
+
     setup_campaign_steps
     @campaign_step =  1
-    
-    render :action=>'edit'
   end
   
-  def edit
-  
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Edit Campaign' ],'e_marketing' )
+  def segments(display=true)
+    @segment = MarketSegment.new(:segment_type => 'subscription')
 
-    opts = Configuration.get_config_model(Mailing::AdminController::ModuleOptions,params[:options])
-
-    @campaign =MarketCampaign.find(params[:path][0])
-    @senders = get_handler_options(:mailing,:sender).find_all { |opt| opts.enabled_senders.include?(opt[1]) }
-    
-    return unless verify_campaign_setup
-                                   
-    if request.post? && params[:campaign]
-      @campaign.attributes = params[:campaign]
-      @campaign.edited_at = Time.now
-      @campaign.sender_type = opts.default_sender if @campaign.sender_type.blank? || !opts.enabled_senders.include?(@campaign.sender_type)
-      if @campaign.save
-        redirect_to :action => 'segments',:path => @campaign.id
-      end
-    end
-    
-    
-    setup_campaign_steps
-    @campaign_step =  1
-  
-  end
-
-  def segments
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Choose a Segmentation' ],'e_marketing' )
-    
-    @campaign = MarketCampaign.find(params[:path][0])
-    return unless verify_campaign_setup
-    
-    @subscription_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="subscription" AND (market_campaign_id IS NULL or market_campaign_id=?)',@campaign.id])
-    @members_segments = MarketSegment.find(:all,:conditions => [ 'segment_type="members" AND (market_campaign_id IS NULL or market_campaign_id=?)',@campaign.id])
-    @content_model_segments = MarketSegment.find(:all,:conditions => [ '(segment_type="content_model" OR segment_type="custom") AND (market_campaign_id IS NULL or market_campaign_id=?)',@campaign.id])
-    
-    if request.post? && params[:segment]
-      @campaign.market_segment_id = params[:segment]
-      if @campaign.market_segment.segment_type == 'subscription'
-        @campaign.data_model = 'subscription'
-      elsif @campaign.market_segment.segment_type == 'members'
-        @campaign.data_model = 'members'
-      elsif @campaign.market_segment.segment_type == 'custom'
-        @campaign.data_model = 'members'
+    if display
+      if params[:path] && params[:path][0]
+	@campaign = MarketCampaign.find(params[:path][0])
       else
-        market_segment = MarketSegment.find(@campaign.market_segment_id)
-        @campaign.data_model = market_segment.options[:content_model_id]
-      end      
-      @campaign.edited_at = Time.now
-      @campaign.save
-      if params[:edit] && @campaign.market_segment.segment_type == 'content_model'
-        redirect_to :action => 'segment', :path => [ @campaign.id, @campaign.market_segment_id ]
-      else
-        redirect_to :action => 'message', :path => @campaign.id
+	@campaign = MarketCampaign.new(:created_by => myself, :created_at => Time.now)
       end
+
+      @segment.segment_type = params[:segment_type] if params[:segment_type]
+      @campaign.market_segment_id = params[:market_segment_id] if params[:market_segment_id]
+    elsif @campaign.market_segment
+      @segment.segment_type = @campaign.market_segment.segment_type
     end
-    
-    
-    
-    setup_campaign_steps
-    @campaign_step =  2
+
+    @segments = MarketSegment.for_campaign(@campaign).with_segment_type(@segment.segment_type).order_by_name.find(:all)
+
+    @segment_types = [['Subscriptions', 'subscription'], ['Target Segmentation', 'members'], ['Special Import', 'content_model']]
+
+    render :partial => 'segments' if display
   end
   
   def delete_segmentation
@@ -452,13 +450,14 @@ class CampaignsController < ModuleController
   end
 
   def segment
-    @campaign = MarketCampaign.find(params[:path][0])
-    return unless verify_campaign_setup
-    
-    @market_segment = MarketSegment.find_by_id(params[:path][1]) || MarketSegment.new(:segment_type => 'content_model')
-    
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], @market_segment.id ? 'Edit Segmentation' : 'Create a New Segmentation' ],'e_marketing' )
-    
+    if params[:path] && params[:path][0]
+      @campaign = MarketCampaign.find(params[:path][0])
+    else
+      @campaign = MarketCampaign.new
+    end
+
+    @market_segment = MarketSegment.find_by_id(params[:segment_id]) || @campaign.build_market_segment(:segment_type => 'content_model')
+
     @options_model = @market_segment.options_model
     if request.post? && params[:segment]
       if params[:segment][:options]
@@ -472,14 +471,13 @@ class CampaignsController < ModuleController
 	  @options_model.option_to_i(:content_model_id)
           @market_segment.options = @options_model.to_h
           @market_segment.save
-          @campaign.market_segment = @market_segment
-          @campaign.edited_at = Time.now
-          @campaign.save
-          redirect_to :action => :message, :path => @campaign.id
+          render :action => :segment
+	  return
 	end
       else
         if @market_segment.update_attributes(params[:segment])
-          redirect_to :action => :segment, :path => [ @campaign.id, @market_segment.id ]
+          render :action => :segment
+	  return
 	end
       end
     end
@@ -489,10 +487,8 @@ class CampaignsController < ModuleController
       @content_model_fields = @content_model ? @content_model.content_model_fields.collect { |fld| [ fld.name, fld.field ] } : []
     end
 
-    setup_campaign_steps
-    @campaign_step =  2
+    render :partial => 'segment'
   end
-  
   
   def segment_info 
     @segment = MarketSegment.find(params[:segment_id])
@@ -509,13 +505,12 @@ class CampaignsController < ModuleController
   end
 
   def message
-  
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
     
     @message = @campaign.market_campaign_message || @campaign.create_market_campaign_message
     
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Select Campaign Template' ],'e_marketing' )
+    cms_page_path ['E-marketing','Email Campaigns'], 'Select Campaign Template'
     
     if request.post?
     
@@ -533,16 +528,18 @@ class CampaignsController < ModuleController
             new_tpl = mail_template.duplicate
             @campaign.mail_template_id =new_tpl.id
           else 
-            @campaign.mail_template_id =mail_template.id
+            @campaign.mail_template_id = mail_template.id
           end
           @campaign.edited_at = Time.now
+	  @campaign.status = 'setup'
           @campaign.save
           redirect_to :controller => :mail_manager, :action=>:edit_template, :path => [ @campaign.mail_template_id || 0, @campaign.id ] 
         else
           @campaign.mail_template_id =params[:message]
           @campaign.edited_at = Time.now
+	  @campaign.status = 'setup'
           @campaign.save
-          redirect_to :action => :options, :path => [ @campaign.id ]
+          redirect_to :action => :confirm, :path => [ @campaign.id ]
         end
       end
     
@@ -557,7 +554,7 @@ class CampaignsController < ModuleController
     end
   
     setup_campaign_steps
-    @campaign_step =  3
+    @campaign_step =  2
   end
   
   
@@ -647,50 +644,11 @@ class CampaignsController < ModuleController
     render :nothing => true
   end
 
-
-  def options
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Campaign Options' ],'e_marketing' )
-    @campaign = MarketCampaign.find(params[:path][0])
-    return unless verify_campaign_setup
-
-    opts = Configuration.get_config_model(Mailing::AdminController::ModuleOptions,params[:options])
-
-    if @campaign.sender_class.respond_to?('send_options')
-     @send_options = @campaign.sender_class.send_options( params[:campaign_options] || (@campaign.sender_data || {})[:options]) 
-    end
-    
-    if request.post? && params[:campaign]
-      @campaign.attributes = params[:campaign]
-      @campaign.sender_data ||= {}
-      @campaign.sender_data[:options] = @send_options.to_h if @send_options
-      @campaign.status = 'setup'
-      @campaign.edited_at = Time.now
-      if @campaign.valid? && (!@send_options || @send_options.valid?)
-        @campaign.save
-        redirect_to :action => 'confirm', :path => [ @campaign.id ]
-      end
-    end
-    
-    
-  
-    setup_campaign_steps
-    @campaign_step =  4
-  end
-
   def confirm
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Confirm Campaign' ],'e_marketing' )
-    
+    cms_page_path ['E-marketing','Email Campaigns'], 'Confirm Campaign'
     
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
-    
-    
-    
-    if request.post? && params[:send_campaign]
-       redirect_to :action => 'verify', :path => params[:path][0]
-    end
-    
-    #@mail_template = @campaign.mail_template
     
     generate_sample 
     @from_email = @preview_vars['system:from']
@@ -698,40 +656,34 @@ class CampaignsController < ModuleController
     if @preview_vars['system:reply_to']
       @reply_to_email = @preview_vars['system:reply_to']
     end
-        
     
     setup_campaign_steps
-    @campaign_step =  5
-      
+    @campaign_step =  3
   end
   
   def verify
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Confirm Campaign' ],'e_marketing' )
-    
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
-    
-    
-    if request.post? && params[:send_campaign]
-      
-       @campaign = MarketCampaign.find(params[:path][0],:lock => true,:conditions => 'status = "setup"')
-       if @campaign
-          @campaign.status = 'initializing'
-          @campaign.edited_at = Time.now
-          @campaign.save
-          
-          #@campaign.send_campaign
-          DomainModel.run_worker('MarketCampaign',@campaign.id,:send_campaign)
 
-          redirect_to :action => 'index'
-       end
+    if request.post? && params[:send_campaign]
+      @campaign = MarketCampaign.find(params[:path][0],:lock => true,:conditions => 'status = "setup"')
+      if @campaign
+	@campaign.status = 'initializing'
+	@campaign.edited_at = Time.now
+	@campaign.save
+
+	@campaign.run_campaign
+
+	render :update do |page|
+	  page.redirect_to :action => 'index'
+	end
+	return
+      end
     elsif request.post?
       @not_checked = true
     end
-    
-    setup_campaign_steps
-    @campaign_step =  5
-      
+
+    render :partial => 'verify'
   end
   
   def send_sample
@@ -754,11 +706,6 @@ class CampaignsController < ModuleController
   end
   
   def update_content_model_options
-    @campaign = MarketCampaign.find(params[:path][0])
-    return unless verify_campaign_setup
-    
-    #@market_segment = MarketSegment.find(params[:path][1])
-    
     @content_model = ContentModel.find_by_id(params[:content_model_id])
     @content_model_fields = @content_model.content_model_fields.collect { |fld| [ fld.name, fld.field ] }
     @options_model = DefaultsHashObject.new
@@ -767,12 +714,11 @@ class CampaignsController < ModuleController
   
   
   def status
-    cms_page_info([ [ 'E-marketing', url_for(:controller => 'emarketing') ], [ 'Email Campaigns', url_for(:controller => 'campaigns', :action => 'index')], 'Campaign Status' ],'e_marketing' )
-  
+    cms_page_path ['E-marketing','Email Campaigns'], 'Campaign Status'
   
     @campaign = MarketCampaign.find(params[:path][0])
     if @campaign.status == 'setup' || @campaign.status == 'created'
-      redirect_to :action => 'edit', :path =>  @campaign.id
+      redirect_to :action => 'campaign', :path =>  @campaign.id
     end
     
     

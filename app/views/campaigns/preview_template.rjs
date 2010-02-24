@@ -27,4 +27,3 @@ if @mail_template.is_text
   page.replace_html "preview_body_text", simple_format(@mail_template.render_text(@preview_vars))
 end
 
-page << '$("next_butt").disabled = false;'

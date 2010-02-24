@@ -1,0 +1,10 @@
+<div class='cms_form'>
+<h2>Create a new segment</h2>
+
+<% cms_form_for :segment, @market_segment, :html => {:id => 'segment_form', :onsubmit => 'SegmentList.submitSegmentForm(this); return false;'} do |f| %>
+  <%= hidden_field_tag(:segment_id, @market_segment.id) if @market_segment.id %>
+  <%= f.text_field :name, :vertical => true, :label => 'Name (For your use only)', :noun => 'Name' %>
+  <%= f.text_area :description, :vertical => true, :cols => 50, :rows => 4, :label => 'Private Description' %>
+  <%= render :partial => 'segment_edit_content_model' %>
+<% end -%>
+</div>

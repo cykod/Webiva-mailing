@@ -26,7 +26,6 @@
 	                   
 	  $('messages').remove($('messages').selectedIndex);
 	  $('message_info').innerHTML = '';
-	  $('next_butt').disabled = true;
 	  $('delete_segementation').hide();
           $('edit_message_option').hide();
 	  this.selectedMailTemplate= null;
@@ -81,12 +80,6 @@
   <div id='match_variables' <%= "style='display:none;'" unless @campaign.mail_template %> >
     <%= render :partial => 'message_fields' if @campaign.mail_template %>
   </div>
-  
-  <br/><br/>
-  <div align='right'>
-  <input type='submit' name='last_butt' value='<%= vh "Previous".t %>' onclick='document.location = "<%= url_for :action => 'segments', :path => @campaign.id %>"; return false;'/>
-  <input type='submit' name='next'  id='next_butt' value='<%= vh "Next".t %>' <%= "disabled='disabled'" unless  @campaign.mail_template  %> />
-  </div>
 </td>
 <td valign='top' style='padding-right:20px;'>
   <div id='preview_container' <%="style='display:none;'" unless @campaign.mail_template %> >
@@ -96,6 +89,14 @@
     </div>
   </div>
 </td>
+<td valign='top' style='padding-right:20px; padding-top:12px;'>
+<div id="buttons" style="text-align:center; padding:15px 0; width: 160px; background-color:#eee;">
+<a class="link_button" href="<%= url_for :action => 'campaign', :path => @campaign.id %>"><%= 'Previous'.t %></a>
+&nbsp;
+<a class="link_button" href="javascript:void(0);" onclick="$('campaign_template_form').submit();">Next</a>
+</div>
+</td>
+</tr>
 </table>
 </form>
 

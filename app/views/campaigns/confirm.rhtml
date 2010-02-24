@@ -20,7 +20,30 @@
             
     
     },
-    
+
+    verify: function() {
+      new Ajax.Request("<%= url_for :action => 'verify', :path => @campaign.id %>",
+	  	       { method: 'get',
+		         onComplete: CampaignConfirmation.verifyOverlay
+		       });
+    },
+
+    verifyOverlay: function(transport) {
+      SCMS.overlay( transport.responseText );
+    },
+
+    cancelVerify: function() {
+      CampaignConfirmation.closeOverlay();
+    },
+  
+    closeOverlay: function() {
+      SCMS.closeOverlay();
+    },
+
+    submitVerifyForm: function(frm) {
+      SCMS.updateOverlay("<%= url_for :action => 'verify', :path => @campaign.id %>", Form.serialize(frm));
+    },
+
     sendConfirm: function() {
       return true;
     }
@@ -98,7 +121,7 @@
     
       <br/><br/>
       <div align='center' style='margin:5px;'>
-        <%= form_tag('', :onsubmit=>'return CampaignConfirmation.sendConfirm();') -%>
+        <%= form_tag('', :onsubmit=>'CampaignConfirmation.verify(); return false;') -%>
 	  <input type='hidden' name='send_campaign' value='1' />
 	<input type='submit' value='<%= "Send Campaign!".t %>' style='padding:5px;'  />
 	</form>

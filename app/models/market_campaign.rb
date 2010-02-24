@@ -75,6 +75,10 @@ class MarketCampaign < DomainModel
     end
   end
   
+  def run_campaign(parameters=nil)
+    self.run_worker(:send_campaign, parameters)
+  end
+
   def send_campaign(args=nil)
   
     # If we are initializing

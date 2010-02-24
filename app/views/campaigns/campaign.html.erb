@@ -1,0 +1,196 @@
+<%
+showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : false
+%>
+<script>
+  SegmentList = {
+    selectedSegment: <%=  @campaign.market_segment ? @campaign.market_segment_id : 0 %>,
+    showingTargets: <%= showAllOptions ? 'true' : 'false' %>,
+    showingAdvanced: <%= showAllOptions ? 'true' : 'false' %>,
+    showingButtons: <%= showAllOptions ? 'true' : 'false' %>,
+
+    selectSegment: function(segment_id) {
+      $('segment_info').innerHTML = SegmentList.segments[segment_id];
+      $('next_butt').disabled = false;
+      $('delete_segementation').show();
+      $('edit_segment_option').show();
+      
+    },
+    
+    selectType: function(segment_type) {
+      new Ajax.Updater("segments", "<%= url_for :action => 'segments', :path => @campaign.id %>",
+		       { parameters: "segment_type=" + segment_type }
+                      );
+    },
+    
+    selectSegment: function(segment_id) {
+      if(SegmentList.showingAdvanced == false) {
+        SegmentList.showingAdvanced = true;
+        new Effect.Appear('advanced_options_toggle', {duration: 0.5});
+      }
+
+      SegmentList.showButtons();
+
+      if(segment_id == 'new') {
+        SegmentList.newSegment();
+      } else {
+        $('segment_info').innerHTML = '<div align="center"><b><%= jh "Loading Info...".t %></b></div>';
+        new Ajax.Request("<%= url_for :action => 'segment_info' %>",
+                         { parameters: { segment_id: segment_id } }
+                         );
+      }
+    },
+
+    newSegment: function() {
+      $('segment_info').innerHTML = '<div align="center"><b><%= jh "Create segment...".t %></b></div>';
+      new Ajax.Request("<%= url_for :action => 'segment', :path => @campaign.id %>",
+	  	       { method: 'get',
+		         onComplete: SegmentList.newSegmentOverlay
+		       });
+    },
+
+    newSegmentOverlay: function(transport) {
+      $('campaign_market_segment_id').selectedIndex = -1;
+      $('segment_info').innerHTML = '';
+      SCMS.overlay( transport.responseText );
+    },
+
+    editSegment: function(segment_id) {
+      new Ajax.Request("<%= url_for :action => 'segment', :path => @campaign.id %>",
+	  	       { method: 'get',
+			 parameters: { segment_id: segment_id },
+		         onComplete: SegmentList.editSegmentOverlay
+		       });
+    },
+
+    editSegmentOverlay: function(transport) {
+      SCMS.overlay( transport.responseText );
+    },
+
+    cancelSegment: function() {
+      SegmentList.closeOverlay();
+    },
+  
+    closeOverlay: function() {
+      SCMS.closeOverlay();
+    },
+  
+    submitSegmentForm: function(frm) {
+      SCMS.updateOverlay("<%= url_for :action => 'segment', :path => @campaign.id %>", Form.serialize(frm));
+    },
+  
+    updateSegments: function(segment_type, segment_id) {
+      new Ajax.Updater("segments", "<%= url_for :action => 'segments', :path => @campaign.id %>",
+		       { parameters: "segment_type=" + segment_type + "&market_segment_id=" + segment_id }
+                      );
+    },
+
+    deleteSegment: function(segment_id) {
+        if(confirm("<%= jh 'Are you sure you want to delete this Segmentation?'.t %>")) {
+	  new Ajax.Request("<%= url_for :action => 'delete_segmentation' %>",
+	                   { parameters: 'segment_id=' +segment_id});
+	                   
+	  $('campaign_market_segment_id').remove($('campaign_market_segment_id').selectedIndex);
+	  $('segment_info').innerHTML = '';
+	  this.selectedSegment= null;
+	}
+    },
+
+    toggleAdvancedOptions: function() {
+      Element.toggle("advanced_options");
+
+      if( Element.visible('advanced_options') )
+        $('advanced_options_toggle_link').innerHTML = 'hide';
+      else
+        $('advanced_options_toggle_link').innerHTML = 'show';
+    },
+
+    showTargets: function() {
+      if(SegmentList.showingTargets == false) {
+        SegmentList.showingTargets = true;
+        new Effect.Appear("segments", {duration:1.0});
+      }
+    },
+
+    showButtons: function() {
+      if(SegmentList.showingButtons == false) {
+        SegmentList.showingButtons = true;
+        new Effect.Appear("buttons", {duration:0.4});
+      }
+    }
+  }
+
+  ContentModelSegmentEditor = {
+    updateOptions: function(content_model_id) {
+      if( ! content_model_id ) {
+        $('content_model_options').innerHTML = '';
+        return;
+      }
+
+      new Ajax.Updater('content_model_options',
+			"<%= url_for :action => 'update_content_model_options' %>",
+			{ parameters: 'content_model_id=' + content_model_id }
+		      );
+    }
+  }
+</script>
+
+<div class='admin_content' style='padding-bottom: 30px;'>
+<%= render :partial => 'campaign_steps' %>
+
+<div style="width:800px; padding-left:20px;">
+<div id="buttons" style="float:right; text-align:center; padding:15px 0; width: 150px; background-color:#eee; <%= 'display:none;' unless showAllOptions %>">
+<a class="link_button" href="javascript:void(0);" onclick="$('campaign_form').submit();">Next</a>
+</div>
+
+<% cms_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
+<%= f.text_field :name, :vertical => true, :size => 60, :label => 'Campaign Title (For your use only)', :onkeypress => 'SegmentList.showTargets();' -%>
+<%= f.select(:sender_type, @senders, {:label => 'Select Sender', :vertical => true}) if @senders.length > 1 -%>
+
+<tbody id="segments" <%= "style='display:none;'" unless showAllOptions %>>
+<%= render :partial => 'segments' %>
+</tbody>
+
+<tbody id="advanced_options_toggle" <%= "style='display:none;'" unless showAllOptions %>>
+<tr><td colspan='2' style="padding: 10px 0;"><h2><%= 'Advanced Options'.t %>
+<span style="font-size:11px;">[<a id="advanced_options_toggle_link" href='javascript:void(0);' onclick="SegmentList.toggleAdvancedOptions();"><%= 'show'.t %></a>]</span>
+</h2></td></tr>
+</tbody>
+
+<tbody id="advanced_options" style='display:none;'>
+<tr><td colspan='2'><h4><%= "From Email Addresses".t %></h4></td></tr>
+
+<tr><td colspan='2'><label>
+  <%= f.radio_button :from, 'default', :unstyled => true %>
+  <%= "#{Configuration.mailing_from} &lt;#{Configuration.from_email}&gt;" %>
+</label></td></tr>
+
+<tr><td colspan='2'>
+  <%= f.radio_button :from, 'custom', :unstyled => true %>
+  <%= f.text_field :from_name, :unstyled => true, :size => 10, :onkeypress => '$("campaign_from_custom").checked=true;' %>
+  &lt;<%= f.text_field :from_email, :unstyled => true, :size=> 10, :onkeypress=>'$("campaign_from_custom").checked=true;' %>@<%= Configuration.domain %>&gt;
+</td></tr>
+
+<tr><td colspan='2'><h4><%=  "Reply To Email Address (Optional)".t %></h4></td></tr>
+<tr><td colspan='2'>
+  <%= f.text_field :reply_to_name, :unstyled => true, :size => 10 %>
+  &lt;<%= f.text_field :reply_to_email, :unstyled => true, :size => 10 %>@<%= Configuration.domain %>&gt;
+</td></tr>
+
+<% if @campaign.sender_type == 'mailing/webiva_sender' -%>
+<tr><td colspan='2'><h4><%= "Choose your tracking options:".t %></h4></td></tr>
+ <%= f.radio_buttons :tracking_image, [['Yes',true],['No',false]], :vertical => true, :label => 'Add a tracking image? (Allows tracking of who opens and views the mailing)' %>
+ <%= f.radio_buttons :track_links, [['Yes',true],['No',false]], :vertical => true, :label => 'Track all links? (Allows tracking of which links are clicked on)' %>
+ <%= f.radio_buttons :view_online, [['Yes',true],['No',false]], :vertical => true, :label => 'Let recipients view this message online?' %>
+<% end -%>
+
+<% if @campaign.sender_class.respond_to?('send_options') && @send_options -%>
+  <% cms_fields_for 'campaign_options', @send_options do |so| -%>
+    <%= render :partial => @campaign.sender_class.send_options_partial, :locals => { :f => so } %>
+  <% end -%>
+<% end -%>
+
+</tbody>
+<% end -%>
+</div>
+
+</div>

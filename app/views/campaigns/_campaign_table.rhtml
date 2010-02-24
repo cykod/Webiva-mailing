@@ -16,7 +16,7 @@
   <td class='empty' ><%= entry_checkbox "campaign",t.id %> </td>
   <td>
     <% if t.under_construction? %>
-       <%= link_to t.name, :action => 'edit' , :path => t.id  %>
+       <%= link_to t.name, :action => 'campaign' , :path => t.id  %>
     <% else -%>
        <%= t.name %>
     <% end -%>

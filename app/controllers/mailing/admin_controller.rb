@@ -5,8 +5,8 @@ class Mailing::AdminController < ModuleController
   component_info 'Mailing', :description => 'Emailing Campaigns Component', 
                               :access => :private
 
-  register_permissions :editor, [  [ :mailing, 'Send Email Campaigns', 'Manage Email Campaigns' ], [ :mail_config, 'Configure Email Campaign', 'Configure Email Campaigns'] ]            
-  
+  register_permissions :editor, [  [ :mailing, 'Send Email Campaigns', 'Manage Email Campaigns' ], [ :mail_config, 'Configure Email Campaign', 'Configure Email Campaigns'] ]
+
   module_for :mail, 'Mail', :description => 'Add E-Marketing Pages to your site'
   
   user_actions :mail
@@ -18,6 +18,11 @@ class Mailing::AdminController < ModuleController
   
   register_handler :navigation, :emarketing, "Mailing::AdminController"
   
+  cms_admin_paths "options",
+                  'Content' => { :controller => '/content' },
+                  'Options' =>   { :controller => '/options' },
+                  'Modules' =>  { :controller => '/modules' },
+                  'Mailing Module Options' => { :action => 'options' }
   
   def self.navigation_emarketing_handler_info
     {:name => 'E-Marketing Pages', 
@@ -49,11 +54,9 @@ class Mailing::AdminController < ModuleController
   end
   
   def options
-  
-   cms_page_info [ ["Options",url_for(:controller => '/options') ], ["Modules",url_for(:controller => "/modules")], "Mailing Module Options "], "options"
+    cms_page_path ['Options','Modules'], 'Mailing Module Options'
     
-    @options = Configuration.get_config_model(ModuleOptions,params[:options])
-    
+    @options = self.class.module_options(params[:options])
     
     @handlers = get_handler_info(:mailing,:sender,nil,true)
     
@@ -88,21 +91,22 @@ class Mailing::AdminController < ModuleController
     @senders = get_handler_options(:mailing,:sender,true)
   end
   
+  def self.module_options(vals=nil)
+    Configuration.get_config_model(ModuleOptions,vals)
+  end
 
   class ModuleOptions < HashModel
-      default_options :enabled_senders => [ 'mailing/webiva_sender'], :default_sender => 'mailing/webiva_sender', :senders => {}
-      
-      
-      def validate
-        
-        enabled_senders = self.enabled_senders.find_all { |elm| !elm.blank? }
-        if enabled_senders.length == 0
-          errors.add(:enabled_senders,'must include at least one valid sender')
-        end
-        
-        if !enabled_senders.include?(default_sender)
-          errors.add(:default_sender,'must be an enabled sender')
-        end
+    attributes :enabled_senders => [ 'mailing/webiva_sender'], :default_sender => 'mailing/webiva_sender', :senders => {}
+
+    def validate
+      enabled_senders = self.enabled_senders.find_all { |elm| !elm.blank? }
+      if enabled_senders.length == 0
+	errors.add(:enabled_senders,'must include at least one valid sender')
       end
+        
+      if !enabled_senders.include?(default_sender)
+	errors.add(:default_sender,'must be an enabled sender')
+      end
+    end
   end             
 end

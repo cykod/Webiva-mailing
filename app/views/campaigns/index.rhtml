@@ -37,7 +37,7 @@ CampaignEditor = {
 </script>
 <div class='admin_content'>
 <ul class='action_panel'>
-  <li><a href='<%= url_for :action => 'new' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Create New Campaign".t %></a></li>
+  <li><a href='<%= url_for :action => 'campaign' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Create New Campaign".t %></a></li>
   <li><% if @show_archived %>
           <%= link_to theme_icon("action","icons/actions/show.gif") + 'Hide Archived'.t, :action => 'index',:archived => 0 %>
         <% else-%>

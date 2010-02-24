@@ -1,0 +1,2 @@
+page << "SegmentList.closeOverlay();"
+page << "SegmentList.updateSegments('#{@market_segment.segment_type}', #{@market_segment.id});"

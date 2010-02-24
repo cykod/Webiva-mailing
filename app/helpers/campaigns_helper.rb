@@ -38,14 +38,10 @@ module CampaignsHelper
  def setup_campaign_steps
     if !@campaign.id 
       @campaign_max_step = 1
-    elsif !@campaign.market_segment
-      @campaign_max_step = 2
     elsif !@campaign.mail_template || !@campaign.market_campaign_message
-      @campaign_max_step = 3
-    elsif @campaign.status == 'created'
-      @campaign_max_step = 4
+      @campaign_max_step = 2
     else
-      @campaign_max_step = 5
+      @campaign_max_step = 3
     end
       
   end
