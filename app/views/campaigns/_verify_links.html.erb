@@ -1,0 +1,19 @@
+<% links = @links_template ? @links_template.track_link_hrefs : [] %>
+<% if links.length > 0 %>
+<br/>
+<b><%= "Verify Links:".t %></b>
+<div style='border:1px solid #000000; padding:20px;'>
+<table>
+<% links.each_with_index do |link, idx| %>
+<tr>
+  <td style="padding-right:5px;"><a target="_blank" id="mail_link_<%=idx%>" title="<%= vh link %>" href="<%= vh link %>"><%= h truncate(link, :length => 40) %></a></td>
+  <td id="mail_link_status_<%=idx%>">not verified</td>
+  </td>
+</tr>
+<% end -%>
+<tr><td style="padding-top:5px;" colspan='2'>
+<input type="button" onclick="MailTemplateList.verifyLinks(<%= links.length %>);" value="Verify Links">
+</td></tr>
+</table>
+</div>
+<% end -%>

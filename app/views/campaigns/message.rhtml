@@ -57,6 +57,27 @@
     editTemplate: function(action) {
       $('edit_template').value = action;
       $('campaign_template_form').submit();
+    },
+
+    verifyLinks: function(num_links) {
+      for(var idx=0; idx<num_links; idx++ ) {
+        MailTemplateList.testLinkRequest(idx);
+      }
+    },
+
+    testLinkRequest: function(idx) {
+      var href = $('mail_link_'+idx).href;
+
+      $('mail_link_status_'+idx).innerHTML = 'testing';
+
+      new Ajax.Request("<%= url_for :action => 'validate_link' %>", { parameters: 'href=' + href,
+        onSuccess: function(transport) {
+          $('mail_link_status_'+idx).innerHTML = '<span style="color:#29974E;">success</span>';
+        },
+        onFailure: function(transport) {
+          $('mail_link_status_'+idx).innerHTML = '<span style="color:#f00;">failed</span>';
+        }
+      });
     }
   }
 </script>
@@ -77,6 +98,7 @@
   <br/><br/>
   <div id='match_variables' <%= "style='display:none;'" unless @campaign.mail_template %> >
     <%= render :partial => 'message_fields' if @campaign.mail_template %>
+    <%= render :partial => 'verify_links' if @campaign.mail_template %>
   </div>
 </td>
 <td valign='top' style='padding-right:20px;'>

@@ -1,4 +1,7 @@
 require 'csv'
+require 'timeout'
+require 'net/http'
+require 'uri'
 
 class CampaignsController < ModuleController
 
@@ -556,8 +559,32 @@ class CampaignsController < ModuleController
     setup_campaign_steps
     @campaign_step =  2
   end
-  
-  
+
+  def validate_link
+    status = 200
+
+    begin
+      url = URI.parse(params[:href])
+      raise "Invalid Href" unless url.is_a?(URI::HTTP) || url.is_a?(URI::HTTPS)
+      Net::HTTP.start(url.host, url.port) do |http|
+	http.request_head(url.path) do |response|
+	  case response
+	  when Net::HTTPSuccess
+	    status = 200
+	  when Net::HTTPRedirection
+	    status = 200
+	  else
+	    status = 404
+	  end
+	end
+      end
+    rescue
+      status = 404
+    end
+
+    render :nothing => true, :status => status
+  end
+
   hide_action :prepare_preview
   def prepare_preview(fields = true)
     @target_list = (@campaign.market_segment.target_entries(:limit => 1)||[])
@@ -565,8 +592,8 @@ class CampaignsController < ModuleController
 
     @message = @campaign.market_campaign_message
     
-    generate_field_values 
-      
+    generate_field_values
+    @links_template = MailTemplate.find_by_id(@mail_template.id)
     
     @from_email = @preview_vars['system:from']
     
