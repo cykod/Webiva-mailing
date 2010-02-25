@@ -377,10 +377,8 @@ class CampaignsController < ModuleController
     cms_page_path ['E-marketing', 'Email Campaigns'], @campaign.id ? 'Edit Campaign' : 'New Campaign'
 
     @senders = get_handler_options(:mailing,:sender).find_all { |opt| opts.enabled_senders.include?(opt[1]) }
-                                   
-    if @campaign.sender_class.respond_to?('send_options')
-     @send_options = @campaign.sender_class.send_options(params[:campaign_options] || (@campaign.sender_data || {})[:options]) 
-    end
+
+    advanced_options(false)
 
     if request.post? && params[:campaign]
       @campaign.created_by = myself unless @campaign.id
@@ -421,7 +419,27 @@ class CampaignsController < ModuleController
     setup_campaign_steps
     @campaign_step =  1
   end
-  
+
+  def advanced_options(display=true)
+    if display
+      opts = Mailing::AdminController.module_options(params[:options])
+
+      if params[:path] && params[:path][0]
+	@campaign = MarketCampaign.find(params[:path][0])
+      else
+	@campaign = MarketCampaign.new(:created_by => myself, :created_at => Time.now, :sender_type => opts.default_sender)
+      end
+
+      @campaign.attributes = params[:campaign] if params[:campaign]
+    end
+
+    if @campaign.sender_class.respond_to?('send_options')
+      @send_options = @campaign.sender_class.send_options(params[:campaign_options] || (@campaign.sender_data || {})[:options]) 
+    end
+
+    render :partial => 'advanced_options' if display
+  end
+
   def segments(display=true)
     @segment = MarketSegment.new(:segment_type => 'subscription')
 

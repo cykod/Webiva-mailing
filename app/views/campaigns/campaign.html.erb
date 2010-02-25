@@ -116,6 +116,12 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
         SegmentList.showingButtons = true;
         new Effect.Appear("buttons", {duration:0.4});
       }
+    },
+
+    changeAdvancedOptions: function(frm) {
+      new Ajax.Updater("advanced_options", "<%= url_for :action => 'advanced_options', :path => @campaign.id %>",
+		       { method: 'post', parameters: Form.serialize(frm) }
+                      );
     }
   }
 
@@ -142,9 +148,9 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
 <a class="link_button" href="javascript:void(0);" onclick="$('campaign_form').submit();">Next</a>
 </div>
 
-<% cms_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
+<% admin_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
 <%= f.text_field :name, :vertical => true, :size => 60, :label => 'Campaign Title (For your use only)', :onkeypress => 'SegmentList.showTargets();' -%>
-<%= f.select(:sender_type, @senders, {:label => 'Select Sender', :vertical => true}) if @senders.length > 1 -%>
+<%= f.select(:sender_type, @senders, {}, {:label => 'Select Sender', :vertical => true, :onchange => 'SegmentList.changeAdvancedOptions(this.form);'}) if @senders.length > 1 -%>
 
 <tbody id="segments" <%= "style='display:none;'" unless showAllOptions %>>
 <%= render :partial => 'segments' %>
@@ -157,39 +163,9 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
 </tbody>
 
 <tbody id="advanced_options" style='display:none;'>
-<tr><td colspan='2'><h4><%= "From Email Addresses".t %></h4></td></tr>
-
-<tr><td colspan='2'><label>
-  <%= f.radio_button :from, 'default', :unstyled => true %>
-  <%= "#{Configuration.mailing_from} &lt;#{Configuration.from_email}&gt;" %>
-</label></td></tr>
-
-<tr><td colspan='2'>
-  <%= f.radio_button :from, 'custom', :unstyled => true %>
-  <%= f.text_field :from_name, :unstyled => true, :size => 10, :onkeypress => '$("campaign_from_custom").checked=true;' %>
-  &lt;<%= f.text_field :from_email, :unstyled => true, :size=> 10, :onkeypress=>'$("campaign_from_custom").checked=true;' %>@<%= Configuration.domain %>&gt;
-</td></tr>
-
-<tr><td colspan='2'><h4><%=  "Reply To Email Address (Optional)".t %></h4></td></tr>
-<tr><td colspan='2'>
-  <%= f.text_field :reply_to_name, :unstyled => true, :size => 10 %>
-  &lt;<%= f.text_field :reply_to_email, :unstyled => true, :size => 10 %>@<%= Configuration.domain %>&gt;
-</td></tr>
-
-<% if @campaign.sender_type == 'mailing/webiva_sender' -%>
-<tr><td colspan='2'><h4><%= "Choose your tracking options:".t %></h4></td></tr>
- <%= f.radio_buttons :tracking_image, [['Yes',true],['No',false]], :vertical => true, :label => 'Add a tracking image? (Allows tracking of who opens and views the mailing)' %>
- <%= f.radio_buttons :track_links, [['Yes',true],['No',false]], :vertical => true, :label => 'Track all links? (Allows tracking of which links are clicked on)' %>
- <%= f.radio_buttons :view_online, [['Yes',true],['No',false]], :vertical => true, :label => 'Let recipients view this message online?' %>
-<% end -%>
-
-<% if @campaign.sender_class.respond_to?('send_options') && @send_options -%>
-  <% cms_fields_for 'campaign_options', @send_options do |so| -%>
-    <%= render :partial => @campaign.sender_class.send_options_partial, :locals => { :f => so } %>
-  <% end -%>
-<% end -%>
-
+<%= render :partial => 'advanced_options' %>
 </tbody>
+
 <% end -%>
 </div>
 
