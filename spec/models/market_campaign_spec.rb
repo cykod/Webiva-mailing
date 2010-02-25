@@ -2,7 +2,7 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../spec/spec_h
 
 describe MarketCampaign do
 
-  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues
+  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates
 
   it "should require unique name and type" do
     @campaign = MarketCampaign.new
