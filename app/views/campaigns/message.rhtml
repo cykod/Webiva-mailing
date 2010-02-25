@@ -98,6 +98,8 @@
   <br/><br/>
   <div id='match_variables' <%= "style='display:none;'" unless @campaign.mail_template %> >
     <%= render :partial => 'message_fields' if @campaign.mail_template %>
+  </div>
+  <div id='verify_links' <%= "style='display:none;'" unless @campaign.mail_template %> >
     <%= render :partial => 'verify_links' if @campaign.mail_template %>
   </div>
 </td>

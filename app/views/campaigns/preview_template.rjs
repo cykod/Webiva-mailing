@@ -1,7 +1,9 @@
 page.show 'preview_container'
 page.replace_html 'preview_title', :partial => 'message_preview'
 page.replace_html 'match_variables', :partial => 'message_fields'
+page.replace_html 'verify_links', :partial => 'verify_links'
 page.show 'match_variables'
+page.show 'verify_links'
 page.show 'buttons'
 
 case @mail_template.body_format
