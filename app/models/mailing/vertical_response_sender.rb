@@ -74,7 +74,7 @@ class Mailing::VerticalResponseSender
   def set_campaign_contents(mail_template,vars)
     content_fields = [ [ 'subject', mail_template.render_subject(vars) ],
                [ 'unsub_message', mail_template.unsubscribe_text ],
-               [ 'postal_address', Configuration.options['company_address'] ]  ]
+               [ 'postal_address', Configuration.options.company_address ]  ]
 
     if mail_template.is_html
         content_fields << [ 'freeform_html', mail_template.render_html(vars) ]
@@ -119,7 +119,7 @@ class Mailing::VerticalResponseSender
   def prepare_mail_template(mail_template,online)
   
     mail_template.replace_image_sources
-    tracking_variables = {}
+    tracking_variables = []
     
     mail_template.replace_link_hrefs
     
@@ -131,6 +131,7 @@ class Mailing::VerticalResponseSender
 
   def send!(mail_template,message,vars)
     return false unless login
+    vars = {}
     @cid = generate_campaign(mail_template)
     
 
