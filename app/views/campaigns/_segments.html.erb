@@ -1,9 +1,9 @@
 <% cms_subfields_for :campaign, @campaign do |f| -%>
   <% cms_subfields_for :segment, @segment  do |sf| -%>
 
-<tr><td colspan='2' style='padding: 10px 0;'><h2><%= 'Targets'.t %></h2></td></tr>
+<tr><td colspan="2" style='padding-top: 10px;'><h2><%= 'Targets'.t %></h2></td></tr>
 
-<tr><td><h4><%= 'Select the target type'.t %></h4></td>
+<tr class="vertical"><td class="label_vertical"><label><%= 'Select the target type'.t %></label></td>
 
 <td style='border:1px solid #000000; width:300px; margin:0px 5px; padding:5px;' valign='top' rowspan='4'>
   <div id='segment_info'>
@@ -31,7 +31,7 @@ end
 </tr>
 <% end -%>
 
-<tr><td style='padding-top:10px;'><h4><%= 'Select targets'.t %></h4></td></tr>
+<tr class="vertical"><td class="label_vertical" style='padding-top:10px;'><label><%= 'Select targets'.t %></label></td></tr>
 <tr><td>
 <% if @campaign.errors.invalid?(:market_segment_id) -%>
   <span class='error'><%= @campaign.errors.on(:market_segment_id) %></span><br/>

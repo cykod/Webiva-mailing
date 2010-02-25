@@ -1,26 +1,26 @@
 <% cms_subfields_for :campaign, @campaign do |f| -%>
 
-<tr><td colspan='2'><h4><%= "From Email Addresses".t %></h4></td></tr>
+<tr class="vertical"><td class="label_vertical" colspan="2"><label><%= "From Email Addresses".t %></label></td></tr>
 
 <tr><td colspan='2'><label>
   <%= f.radio_button :from, 'default', :unstyled => true %>
   <%= "#{Configuration.mailing_from} &lt;#{Configuration.from_email}&gt;" %>
 </label></td></tr>
 
-<tr><td colspan='2'>
+<tr><td colspan='2' style="padding-bottom:5px;">
   <%= f.radio_button :from, 'custom', :unstyled => true %>
   <%= f.text_field :from_name, :unstyled => true, :size => 10, :onkeypress => '$("campaign_from_custom").checked=true;' %>
   &lt;<%= f.text_field :from_email, :unstyled => true, :size=> 10, :onkeypress=>'$("campaign_from_custom").checked=true;' %>@<%= Configuration.domain %>&gt;
 </td></tr>
 
-<tr><td colspan='2'><h4><%=  "Reply To Email Address (Optional)".t %></h4></td></tr>
-<tr><td colspan='2'>
+<tr class="vertical"><td class="label_vertical" colspan="2"><label><%=  "Reply To Email Address (Optional)".t %></label></td></tr>
+<tr><td colspan='2' style="padding-bottom:5px;">
   <%= f.text_field :reply_to_name, :unstyled => true, :size => 10 %>
   &lt;<%= f.text_field :reply_to_email, :unstyled => true, :size => 10 %>@<%= Configuration.domain %>&gt;
 </td></tr>
 
 <% if @campaign.sender_type == 'mailing/webiva_sender' -%>
-<tr><td colspan='2'><h4><%= "Choose your tracking options:".t %></h4></td></tr>
+<tr class="vertical"><td class="label_vertical" colspan="2"><label><%= "Choose your tracking options:".t %></label></td></tr>
  <%= f.radio_buttons :tracking_image, [['Yes',true],['No',false]], :vertical => true, :label => 'Add a tracking image? (Allows tracking of who opens and views the mailing)' %>
  <%= f.radio_buttons :track_links, [['Yes',true],['No',false]], :vertical => true, :label => 'Track all links? (Allows tracking of which links are clicked on)' %>
  <%= f.radio_buttons :view_online, [['Yes',true],['No',false]], :vertical => true, :label => 'Let recipients view this message online?' %>
