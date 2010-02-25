@@ -46,7 +46,7 @@ class CampaignsController < ModuleController
   end
   
   def verify_campaign_setup
-    if !%w(setup created).include?(@campaign.status)
+    if ! @campaign.under_construction?
       redirect_to :action => 'status', :path => @campaign.id
       return false;
     else
@@ -264,15 +264,15 @@ class CampaignsController < ModuleController
   include ActiveTable::Controller
   active_table :campaign_table,
                 MarketCampaign,
-                [ ActiveTable::IconHeader.new("",:width => 15),
-                  ActiveTable::StringHeader.new("name",:label => "Campaign Title"),
-                  ActiveTable::StaticHeader.new("Type"),
-                  ActiveTable::StaticHeader.new("Status"),
-                  ActiveTable::StaticHeader.new("Emails"),
-                  ActiveTable::StaticHeader.new("Processed"),
-                  ActiveTable::DateRangeHeader.new("created_at",:label => 'Created',:datetime => true),
-                  ActiveTable::DateRangeHeader.new("sent_at",:label => 'When Sent',:datetime =>  true),
-                  ActiveTable::StaticHeader.new("Results")
+                [ hdr(:icon, "",:width => 15),
+                  hdr(:string, "name",:label => "Campaign Title"),
+                  "Type",
+                  "Status",
+                  "Emails",
+                  "Processed",
+                  :created_at,
+                  hdr(:date_range, :sent_at, :label => 'When Sent'),
+                  "Results"
                 ]
 
   def display_campaign_table(display=true)
@@ -762,12 +762,9 @@ class CampaignsController < ModuleController
     cms_page_path ['E-marketing','Email Campaigns'], 'Campaign Status'
   
     @campaign = MarketCampaign.find(params[:path][0])
-    if @campaign.status == 'setup' || @campaign.status == 'created'
+    if @campaign.under_construction?
       redirect_to :action => 'campaign', :path =>  @campaign.id
-    end
-    
-    
-    
+    end    
   end
   
   def update_stats
@@ -915,7 +912,7 @@ class CampaignsController < ModuleController
 
   def self.mail_template_save(mail_template, controller)
     campaign = MarketCampaign.find(controller.params[:return_id])
-    if campaign.status == 'created' || campaign.status == 'setup'
+    if campaign.under_construction?
       campaign.update_attributes(:mail_template_id => mail_template.id, :status => 'created')
       controller.url_for(:controller => 'campaigns', :action => 'message', :path => [campaign.id])
     else

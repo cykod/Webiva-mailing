@@ -11,9 +11,9 @@ module CampaignsHelper
   end
   
  def setup_campaign_steps
-    if !@campaign.id 
+    if ! @campaign.id 
       @campaign_max_step = 1
-    elsif @campaign.status != 'setup'
+    elsif ! @campaign.under_construction?
       @campaign_max_step = 2
     else
       @campaign_max_step = 3

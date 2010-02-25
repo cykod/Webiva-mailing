@@ -22,11 +22,12 @@ class MarketCampaign < DomainModel
   
   has_options :status, [ ['In Construction', 'created' ],
                          ['In Construction','setup'],
-                         ['Not Sent','ready'],
                          ['Generating Recipient List','initializing'], 
+                         ['Sending','sending'],
                          ['Sending','active'],
                          ['Sent','completed']
                        ]
+
   QUEUE_WINDOW_SIZE = 1000
 
   def self.create_custom_campaign(name,user_ids)
@@ -50,7 +51,7 @@ class MarketCampaign < DomainModel
   end
   
   def under_construction?
-    return %w(created setup ready).include?(self.status)
+    return %w(created setup).include?(self.status)
   end
   
   def stat_processed_percentage
@@ -59,12 +60,6 @@ class MarketCampaign < DomainModel
     percent = 0 if percent < 0
     
     percent
-  end
-  
-  
-  def send_sample
-  
-  
   end
   
   def get_mail_template
@@ -80,14 +75,12 @@ class MarketCampaign < DomainModel
   end
 
   def send_campaign(args=nil)
-  
     # If we are initializing
     # need to create the queue
     if self.status == 'initializing'
       initialize_campaign
     end
     
-  
     if self.status == 'sending'
       self.status = 'active' 
       self.save
@@ -97,28 +90,18 @@ class MarketCampaign < DomainModel
       message = self.market_campaign_message
       sender = self.sender_class
       sender.send!(mail_template,message,tracking_variables)
- 
     end
   end
   
   def update_stats(args={})
-      sender = self.sender_class
-      ok = sender.update_stats
-      return ok
+    sender = self.sender_class
+    sender.update_stats
   end
   
   # Prepare a mail template for sending
   # by adding tracking images and links if necessary
   def prepare_mail_template(online = false)
-  
-  
-  
-    mail_template = self.get_mail_template
-    
-    mail_template, tracking_variables = self.sender_class.prepare_mail_template(mail_template,online)
-  
-        
-    return mail_template, tracking_variables
+    self.sender_class.prepare_mail_template(self.get_mail_template, online)
   end
   
   
@@ -135,26 +118,26 @@ class MarketCampaign < DomainModel
   
   def add_delivery_variables(vars)
     if self.from == 'custom' && (!self.from_email.blank? || !self.from_name.blank?)
-	    if !self.from_name.blank?
-	      vars['system:from'] = self.from_name
-	      vars['system:from'] += ' <' + ( self.from_email.blank? ?  Configuration.reply_to_email : "#{self.from_email}@#{Configuration.domain}" ) + ">"
-	    else
-	      vars['system:from'] = "#{self.from_email}@#{Configuration.domain}"
-	    end
+      if !self.from_name.blank?
+	vars['system:from'] = self.from_name
+	vars['system:from'] += ' <' + ( self.from_email.blank? ?  Configuration.reply_to_email : "#{self.from_email}@#{Configuration.domain}" ) + ">"
+      else
+	vars['system:from'] = "#{self.from_email}@#{Configuration.domain}"
+      end
     else
       vars['system:from'] = "#{Configuration.mailing_from} <#{Configuration.reply_to_email}>"
     end
     
-    if !self.reply_to_name.blank? || !self.reply_to_email.blank?
+    if !self.reply_to_email.blank?
       if !self.reply_to_name.blank?
       	vars['system:reply_to'] = self.reply_to_name
-	      vars['system:reply_to'] += ' <' + ( self.reply_to_email.blank? ? Configuration.reply_to_email : "#{self.reply_to_email}@#{Configuration.domain}" ) + ">"
+	vars['system:reply_to'] += ' <' + ( self.reply_to_email.blank? ? Configuration.reply_to_email : "#{self.reply_to_email}@#{Configuration.domain}" ) + ">"
       else
       	vars['system:reply_to'] = "#{self.reply_to_email}@#{Configuration.domain}"
       end
     end
-    vars['system:from_name'] = self.from_name.blank? ? Configuration.mailing_from : self.from_name
 
+    vars['system:from_name'] = self.from_name.blank? ? Configuration.mailing_from : self.from_name
   end
 
   def sender_class
@@ -170,9 +153,7 @@ class MarketCampaign < DomainModel
     
     cls.new(self,cls_opts)
   end
-  
-  
-  
+
   def get_mail_module_path
     self.market_campaign_message.get_mail_module_path
   end
@@ -206,7 +187,6 @@ class MarketCampaign < DomainModel
   def initialize_campaign
     # Generate the market campaign queue
     entry_count = self.market_segment.target_count
-    
     
     # Generate Queue in chunks of 1000
     entry_offset = 0
@@ -243,9 +223,6 @@ class MarketCampaign < DomainModel
     self.market_links.clear
     
     mail_template, tracking_variables = prepare_mail_template(false)
-   
-    
-    
     
     self.stat_queue_size = entry_total
     # TODO: Allow delayed sending
@@ -264,8 +241,8 @@ class MarketCampaign < DomainModel
     self.sent_at = Time.now
     self.status = 'sending'
     self.save
-  
   end
+
   # Generate a unique, semi-random hash for links, campaigns and queues
   def create_hash(str)
     val = str + Time.now.to_s+(Process.pid + Process.pid + str.object_id).to_s
