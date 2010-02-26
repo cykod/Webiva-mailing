@@ -2,7 +2,7 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../spec/spec_h
 
 describe CampaignsController do
 
-  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates
+  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates, :market_link_entries
 
   def create_ready_to_send_campaign
     @user1 = EndUser.push_target('test1@test.dev')
@@ -647,8 +647,35 @@ describe CampaignsController do
       @mm = SiteVersion.default.root.add_subpage 'test', 'M'
       @mm.module_name = '/mailing/mail'
       @mm.save.should be_true
-
-      mock_user
+      @campaign = create_ready_to_send_campaign
+      @campaign.status = 'initializing'
+      @campaign.send_campaign
+      @queue = @campaign.market_campaign_queues.find_by_email(@user1.email)
+      @link = @campaign.market_links.create :link_to => 'http://www.test.dev/', :link_hash => 'link'
     end
+
+    it "should be able to view a sent mail template" do
+      get 'view', :campaign_hash => @campaign.identifier_hash, :queue_hash => @queue.queue_hash
+      @queue.reload
+      @queue.opened.should be_true
+    end
+
+    it "should be able track campaign links" do
+      @queue.opened = true
+      @queue.save
+      @link.clicked.should == 0
+      assert_difference 'MarketLinkEntry.count', 1 do
+	get 'link', :campaign_hash => @campaign.identifier_hash, :queue_hash => @queue.queue_hash, :link_hash => @link.link_hash
+      end
+      @link.reload
+      @link.clicked.should == 1
+    end
+
+    it "should be able to track open message through image" do
+      get 'image', :campaign_hash => @campaign.identifier_hash, :queue_hash => @queue.queue_hash
+      @queue.reload
+      @queue.opened.should be_true
+    end
+
   end
 end
