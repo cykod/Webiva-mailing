@@ -37,7 +37,7 @@ class Mailing::AdminController < ModuleController
   
   
   def mail
-     @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/mailing/mail')
+    @node = SiteNode.find_by_id_and_module_name(params[:path][0],'/mailing/mail')
   
     @page_modifier = @node.page_modifier 
     @options = DefaultsHashObject.new(params[:options] || @page_modifier.modifier_data)
