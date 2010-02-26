@@ -3,6 +3,8 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spe
 describe Mailing::AdminController do
 
   before(:each) do
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing')
+    mod.update_attributes(:status => 'active')
     @mm = SiteVersion.default.root.add_subpage 'test', 'M'
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true

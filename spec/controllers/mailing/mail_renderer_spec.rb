@@ -12,6 +12,8 @@ describe Mailing::MailRenderer, :type => :controller do
   end
 
   before(:each) do
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing')
+    mod.update_attributes(:status => 'active')
     @mm = SiteVersion.default.root.add_subpage 'mail', 'M'
     @mm.module_name = '/mailing/mail'
     @mm.save

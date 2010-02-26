@@ -31,6 +31,11 @@ describe CampaignsController do
     Net::HTTP.should_receive(:start).and_yield(@http)
   end
 
+  before(:each) do
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing')
+    mod.update_attributes(:status => 'active')
+  end
+
   it "should require the mail module to be setup" do
     mock_editor
     get 'index'
@@ -58,7 +63,6 @@ describe CampaignsController do
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true
 
-    Configuration.options.mailing_contact_email = ''
     Configuration.options.company_address = ''
 
     mock_editor

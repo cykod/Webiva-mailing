@@ -12,6 +12,8 @@ describe Mailing::PageRenderer, :type => :controller do
   end
 
   before(:each) do
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing')
+    mod.update_attributes(:status => 'active')
     @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
   end
 
