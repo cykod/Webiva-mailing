@@ -53,7 +53,11 @@ class MarketCampaign < DomainModel
   def under_construction?
     return %w(created setup).include?(self.status)
   end
-  
+
+  def valid_market_segment?
+    self.market_segment && self.market_segment.target_count > 0
+  end
+
   def stat_processed_percentage
     percent = self.stat_processed.to_f * 100 / self.stat_queue_size
     percent = 100 if percent > 100

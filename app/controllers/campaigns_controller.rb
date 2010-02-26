@@ -42,7 +42,7 @@ class CampaignsController < ModuleController
   private
   
   def check_mail_module
-    SiteNode.find_by_module_name_and_node_type('/mailing/mail','M') ? true : false
+    SiteVersion.default.site_nodes.find_by_module_name_and_node_type('/mailing/mail','M') ? true : false
   end
   
   def verify_campaign_setup
@@ -477,7 +477,7 @@ class CampaignsController < ModuleController
       @campaign = MarketCampaign.new
     end
 
-    @market_segment = MarketSegment.find_by_id(params[:segment_id]) || @campaign.build_market_segment(:segment_type => 'content_model')
+    @market_segment = MarketSegment.find_by_id(params[:segment_id]) || @campaign.build_market_segment(:segment_type => 'content_model', :market_campaign_id => @campaign.id)
 
     @options_model = @market_segment.options_model
     if request.post? && params[:segment]
@@ -487,7 +487,7 @@ class CampaignsController < ModuleController
         options_valid = @options_model.valid?
         segment_valid = @market_segment.valid?
         @options_model.option_to_i(:content_model_id)
-        
+
         if segment_valid && options_valid   
 	  @options_model.option_to_i(:content_model_id)
           @market_segment.options = @options_model.to_h
@@ -502,7 +502,7 @@ class CampaignsController < ModuleController
 	end
       end
     end
-    
+
     if @market_segment.segment_type == 'content_model' &&  @options_model.content_model_id 
       @content_model = ContentModel.find_by_id(@options_model.content_model_id)
       @content_model_fields = @content_model ? @content_model.content_model_fields.collect { |fld| [ fld.name, fld.field ] } : []
@@ -513,9 +513,7 @@ class CampaignsController < ModuleController
   
   def segment_info 
     @segment = MarketSegment.find(params[:segment_id])
-    
     render :action => 'segment_info'
-  
   end
   
   def segment_view_list 
@@ -528,7 +526,12 @@ class CampaignsController < ModuleController
   def message
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
-    
+
+    unless @campaign.valid_market_segment?
+      redirect_to :action => :campaign, :path => [@campaign.id]
+      return
+    end
+
     @message = @campaign.market_campaign_message || @campaign.create_market_campaign_message
     
     cms_page_path ['E-marketing','Email Campaigns'], 'Select Campaign Template'
@@ -554,7 +557,7 @@ class CampaignsController < ModuleController
           @campaign.edited_at = Time.now
 	  @campaign.status = 'setup'
           @campaign.save
-          redirect_to :controller => :mail_manager, :action=>:edit_template, :path => [ @campaign.mail_template_id || 0, @campaign.id ], :return => self.class.to_s.underscore, :return_id => @campaign.id
+          redirect_to :controller => :mail_manager, :action => :edit_template, :path => [@campaign.mail_template_id], :return => self.class.to_s.underscore, :return_id => @campaign.id
         else
           @campaign.mail_template_id =params[:message]
           @campaign.edited_at = Time.now
@@ -678,9 +681,7 @@ class CampaignsController < ModuleController
     
     @mail_template = MailTemplate.find(params[:path][1])
     prepare_preview
-      
   end
-  
 
   def delete_template
     mail_template_id = params[:template_id]
@@ -694,7 +695,17 @@ class CampaignsController < ModuleController
     
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
-    
+
+    unless @campaign.valid_market_segment?
+      redirect_to :action => :campaign, :path => [@campaign.id]
+      return
+    end
+
+    unless @campaign.mail_template
+      redirect_to :action => :message, :path => [@campaign.id]
+      return
+    end
+
     generate_sample 
     @from_email = @preview_vars['system:from']
     
@@ -709,6 +720,16 @@ class CampaignsController < ModuleController
   def verify
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
+
+    unless @campaign.valid_market_segment?
+      redirect_to :action => :campaign, :path => [@campaign.id]
+      return
+    end
+
+    unless @campaign.mail_template
+      redirect_to :action => :message, :path => [@campaign.id]
+      return
+    end
 
     if request.post? && params[:send_campaign]
       @campaign = MarketCampaign.find(params[:path][0],:lock => true,:conditions => 'status = "setup"')
