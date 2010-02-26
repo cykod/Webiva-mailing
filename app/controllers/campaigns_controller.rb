@@ -19,7 +19,7 @@ class CampaignsController < ModuleController
   helper :campaigns
   include CampaignsHelper
   
-  before_filter :verify_mail_module, :except => 'missing_mail_module'
+  before_filter :verify_mail_module, :except => ['missing_mail_module', 'mail_module_setup']
   
   cms_admin_paths "e_marketing",
                   'Content' => { :controller => '/content' },
@@ -32,6 +32,9 @@ class CampaignsController < ModuleController
   
     if !check_mail_module
       redirect_to :action => :missing_mail_module 
+      return false
+    elsif ! verify_reply_to_and_address
+      redirect_to :action => :mail_module_setup 
       return false
     else
       return true
@@ -54,7 +57,10 @@ class CampaignsController < ModuleController
     end
   end
   
-  
+  def verify_reply_to_and_address
+    ! Configuration.reply_to_email.blank? && ! Configuration.options.company_address.blank?
+  end
+
   public
    
    def view
@@ -237,12 +243,8 @@ class CampaignsController < ModuleController
     rescue InvalidPageDataException => e
      render :nothing => true 
     end
-  
-    
   end
-  
-  
-  
+
   def missing_mail_module
     cms_page_path ['E-marketing','Email Campaigns'], 'Missing Mail Module'
 
@@ -252,15 +254,33 @@ class CampaignsController < ModuleController
     end
       
     if request.post?
-        @site_root = SiteVersion.default.root_node
-        @page = @site_root.add_subpage('mail','M')
-        @page.update_attributes( :module_name => '/mailing/mail')
+      @site_root = SiteVersion.default.root_node
+      @page = @site_root.add_subpage('mail','M')
+      @page.update_attributes( :module_name => '/mailing/mail')
+      redirect_to :action => 'index'
+      return
+    end
+  end
+
+  def mail_module_setup
+    cms_page_path ['E-marketing','Email Campaigns'], 'Mail Module Setup'
+
+    @options =  Configuration.options(params[:options])
+    
+    if request.post? && params[:options]
+      @options.errors.add(:mailing_contact_email, 'is missing') if @options.mailing_contact_email.blank?
+      @options.errors.add(:company_address, 'is missing') if @options.company_address.blank?
+
+      if @options.errors.length == 0 && @options.valid?
+	@config = Configuration.retrieve(:options)
+	@config.options = @options.to_hash
+	@config.save
 	redirect_to :action => 'index'
 	return
+      end
     end
-      
   end
-  
+
   include ActiveTable::Controller
   active_table :campaign_table,
                 MarketCampaign,
@@ -833,7 +853,7 @@ class CampaignsController < ModuleController
     
     @market_links = @campaign.market_links.index_by(&:id)
     
-    @queue_entries = @campaign.market_campaign_queues.find(:all,:conditions => @conditions,:include => :market_link_entries)
+    @queue_entries = @campaign.market_campaign_queues.find(:all,:conditions => @conditions,:include => :market_link_entries, :limit => 200)
     
     
     if @download

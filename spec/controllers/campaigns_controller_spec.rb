@@ -53,10 +53,36 @@ describe CampaignsController do
     @mail_node.node_path.should == '/mail'
   end
 
+  it "should require reply to and company address to be set" do
+    @mm = SiteVersion.default.root.add_subpage 'test', 'M'
+    @mm.module_name = '/mailing/mail'
+    @mm.save.should be_true
+
+    Configuration.options.mailing_contact_email = ''
+    Configuration.options.company_address = ''
+
+    mock_editor
+    get 'index'
+    response.should redirect_to(:action => 'mail_module_setup')
+  end
+
+  it "should set reply to and company address" do
+    @mm = SiteVersion.default.root.add_subpage 'test', 'M'
+    @mm.module_name = '/mailing/mail'
+    @mm.save.should be_true
+
+    mock_editor
+    post 'mail_module_setup', :options => {:mailing_contact_email => 'test@test.dev', :company_address => '1 test lane'}
+    response.should redirect_to(:action => 'index')
+  end
+
   it "should render the index page if mail module is setup" do
     @mm = SiteVersion.default.root.add_subpage 'test', 'M'
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true
+
+    Configuration.options.mailing_contact_email = 'test@test.dev'
+    Configuration.options.company_address = '1 test lane'
 
     mock_editor
     get 'index'
@@ -68,6 +94,9 @@ describe CampaignsController do
       @mm = SiteVersion.default.root.add_subpage 'test', 'M'
       @mm.module_name = '/mailing/mail'
       @mm.save.should be_true
+
+      Configuration.options.mailing_contact_email = 'test@test.dev'
+      Configuration.options.company_address = '1 test lane'
 
       mock_editor
     end
@@ -647,6 +676,8 @@ describe CampaignsController do
       @mm = SiteVersion.default.root.add_subpage 'test', 'M'
       @mm.module_name = '/mailing/mail'
       @mm.save.should be_true
+      Configuration.options.mailing_contact_email = 'test@test.dev'
+      Configuration.options.company_address = '1 test lane'
       @campaign = create_ready_to_send_campaign
       @campaign.status = 'initializing'
       @campaign.send_campaign

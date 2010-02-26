@@ -1,3 +1,6 @@
+<% if @queue_entries.length >= 200 -%>
+<p>Showing first 200 entries.</p>
+<% end -%>
 <% case @detail_type
    when 'opened': %>
   <% table_for @queue_entries, [ 'Email','Opened At' ], :class => 'stats_table' do |queue| %>
