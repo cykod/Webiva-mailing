@@ -17,12 +17,12 @@ class Mailing::ReportsController < ApplicationController
    active_table :queue_table,
                 MarketCampaignQueue,
                 [ 
-                  ActiveTable::StringHeader.new('market_campaigns.name',:label => 'Campaign Name'),
-                  ActiveTable::DateRangeHeader.new('market_campaign_queues.sent_at',:label => 'Sent At'),
-                  ActiveTable::BooleanHeader.new('market_campaign_queues.bounced',:label => 'Bounced'),
-                  ActiveTable::DateRangeHeader.new('market_campaign_queues.opened_at',:label => 'Opened At'),
-                  ActiveTable::BooleanHeader.new('market_campaign_queues.unsubscribed',:label => 'Unsubscribe'),
-                  ActiveTable::NumberHeader.new('market_campaign_queues.click_count',:label => 'Clicks')
+                  hdr(:string, 'market_campaigns.name',:label => 'Campaign Name'),
+                  hdr(:date_range, 'market_campaign_queues.sent_at',:label => 'Sent At'),
+                  hdr(:boolean, 'market_campaign_queues.bounced',:label => 'Bounced'),
+                  hdr(:date_range, 'market_campaign_queues.opened_at',:label => 'Opened At'),
+                  hdr(:boolean, 'market_campaign_queues.unsubscribed',:label => 'Unsubscribe'),
+                  hdr(:number, 'market_campaign_queues.click_count',:label => 'Clicks')
                   
                 ]
 
