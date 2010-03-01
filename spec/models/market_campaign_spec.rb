@@ -1,4 +1,4 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../spec/spec_helper"
+require  File.expand_path(File.dirname(__FILE__)) + "/../mailing_spec_helper"
 
 describe MarketCampaign do
 
@@ -55,8 +55,10 @@ describe MarketCampaign do
   end
 
   it "should set delivery variables" do
-    Configuration.options.mailing_contact_email = 'test@test.dev'
-    Configuration.options.mailing_default_from_name = 'Testing'
+    @config = Configuration.retrieve(:options)
+    @config.options[:mailing_contact_email] = 'test@test.dev'
+    @config.options[:mailing_default_from_name] = 'Testing'
+    @config.save
     vars = {}
     @campaign = MarketCampaign.new
     @campaign.add_delivery_variables(vars)

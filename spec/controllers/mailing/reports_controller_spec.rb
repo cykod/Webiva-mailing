@@ -1,4 +1,4 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require  File.expand_path(File.dirname(__FILE__)) + "/../../mailing_spec_helper"
 
 describe Mailing::ReportsController do
 
@@ -17,8 +17,6 @@ describe Mailing::ReportsController do
   end
 
   before(:each) do
-    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing')
-    mod.update_attributes(:status => 'active')
     @mm = SiteVersion.default.root.add_subpage 'test', 'M'
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true

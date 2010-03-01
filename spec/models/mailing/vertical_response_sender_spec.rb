@@ -1,4 +1,4 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../../spec/spec_helper"
+require  File.expand_path(File.dirname(__FILE__)) + "/../../mailing_spec_helper"
 
 describe Mailing::VerticalResponseSender do
 

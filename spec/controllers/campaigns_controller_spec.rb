@@ -1,8 +1,8 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../spec/spec_helper"
+require  File.expand_path(File.dirname(__FILE__)) + "/../mailing_spec_helper"
 
 describe CampaignsController do
 
-  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates, :market_link_entries, :site_modules, :configurations
+  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates, :market_link_entries
 
   def create_ready_to_send_campaign
     @user1 = EndUser.push_target('test1@test.dev')
@@ -29,11 +29,6 @@ describe CampaignsController do
     @http = mock
     @http.should_receive(:request_head).and_yield(response)
     Net::HTTP.should_receive(:start).and_yield(@http)
-  end
-
-  before(:each) do
-    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing', :force => true)
-    mod.update_attributes(:status => 'active')
   end
 
   it "should require the mail module to be setup" do
