@@ -26,6 +26,7 @@ CampaignViewer = {
 
 </script>
 <% action_panel do |p| -%>
+  <%= p.link("Resend Campaign", :action=>'resend_campaign', :path => [ @campaign.id ], :icon => 'expand.gif') if @campaign.can_resend? %>
   <%= p.link "Download Opened Detail", :action=>'details',:download => 1,:detail_type => 'opened',:path => [ @campaign.id ], :icon => 'download.gif' %>
   <%= p.link "Download Link Details", :action=>'details',:download => 1,:detail_type => 'clicked',:path => [ @campaign.id ], :icon => 'download.gif' %>
   <%= p.link "Download Unsubscription Detail", :action=>'details',:download => 1,:detail_type => 'unsubscribed',:path => [ @campaign.id ], :icon => 'download.gif' %>
@@ -34,7 +35,9 @@ CampaignViewer = {
 <div class='admin_content'>
   <h2><%= @campaign.name %> <%= "Campaign" .t %></h2>
   <b><%= h sprintf("Created by %s".t,@campaign.created_by ? @campaign.created_by.name : 'Unknown'.t) %> <%= sprintf("on %s".t, @campaign.created_at.localize("%m/%d/%y".t)) %></b><br/>
-  <b><%= "Campaign Status".t %>: <%= @campaign.status_display %></b><br/><br/>
+  <b><%= "Campaign Status".t %>: <%= "<span class='error'>" if @campaign.status == 'error' %><%= @campaign.status_display %><%= "</span>" if @campaign.status == 'error' %></b><br/>
+  <%= ('<b>' + 'Error Message'.t + ":</b> <span class='error'>#{@campaign.error_message}</span><br/>") if @campaign.status == 'error' -%>
+<br/>
   
   <% if @campaign.sender_type != 'mailing/webiva_sender' -%>
     <form action='' method='get' id='reload_frm'></form>

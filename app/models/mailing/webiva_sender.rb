@@ -1,14 +1,8 @@
 
-class Mailing::WebivaSender
+class Mailing::WebivaSender < Mailing::Base
   
-  SENDING_WINDOW_SIZE = 100
+  SENDING_WINDOW_SIZE = 1
   
-  def initialize(campaign,options)
-    @campaign = campaign
-    @options = options
-  end
-  
-    
   def self.mailing_sender_handler_info
     { :name => 'Webiva Mailer'
     }
@@ -91,11 +85,12 @@ class Mailing::WebivaSender
       else
         mdl = ContentModel.find(@campaign.data_model).content_model
       end
-      
+
       queues.each do |queue|
 	
         skip_target = UserUnsubscription.find_by_email(queue.email) ? true : false
-        
+        skip_target ||= RFC822::EmailAddress.match(queue.email).nil?
+
         if skip_target
           skip_count += 1
         else
@@ -114,16 +109,28 @@ class Mailing::WebivaSender
           
           @campaign.add_delivery_variables(vars)
           
-          mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
-          queue.message_id = mail.message_id
-          queue.sent_at = Time.now
-          queue.sent = true
-          sent_count += 1
+	  begin
+	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
+	    queue.message_id = mail.message_id
+	    queue.sent_at = Time.now
+	    queue.sent = true
+	    sent_count += 1
+	  rescue Exception => e
+	    queue.error = true
+	    @campaign.status = 'error'
+	    @campaign.error_message = e.to_s
+	    @campaign.save
+	    logger.error("Failed to send mail to #{queue.email} because '#{e}'")
+	  end
         end
         
         queue.handled = true
         queue.save
-        
+
+        unless @campaign.status == 'active'
+	  logger.warn("Stopping, campaign status changed to #{@campaign.status}")
+	  break;
+	end
       end 
       
       # Help the garbage collecting if we can

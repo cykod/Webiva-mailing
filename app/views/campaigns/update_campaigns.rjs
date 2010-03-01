@@ -8,7 +8,7 @@ page << "CampaignEditor.updateCampaigns = [];"
   page.replace_html "campaign_queue_size_#{campaign.id}", :inline => (!campaign.under_construction? && campaign.stat_queue_size > 0 ? campaign.stat_queue_size.to_s : '-')
   page.replace_html "campaign_sent_at_#{campaign.id}", :inline => (campaign.sent_at ? ago_format(Time.now() - campaign.sent_at) : '-')
   
-  if campaign.status == 'initializing' || campaign.status == 'active' 
+  if campaign.status == 'initializing' || campaign.status == 'active'  || campaign.status == 'sending'
     page << "CampaignEditor.updateCampaigns.push(#{campaign.id});"  
   end
 

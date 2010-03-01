@@ -10,7 +10,7 @@
                     :class => 'active_table',
                     :actions => [ [ 'Archive', 'archive', 'Archive the selected entries?' ],
                                   [ 'Duplicate', 'copy', 'Duplicate the selected entries? (Entries will be assigned new ID\'s)'] ],
-                    :more_actions => [ [ 'Delete', 'delete','Are you sure you want to delete the selected campaigns?'] ],
+                    :more_actions => [ [ 'Delete', 'delete','Are you sure you want to delete the selected campaigns?'], [ 'Pause', 'pause','Are you sure you want to pause the selected campaigns?'], ['Resend', 'resend'] ],
                     :update => 'campaign_table' do |t| %>
 <tr <%= highlight_row 'campaign',t.id %>>
   <td class='empty' ><%= entry_checkbox "campaign",t.id %> </td>
@@ -53,7 +53,7 @@
     </span>
     </td>
   </td>
-    <% if t.status == 'initializing' || t.status == 'active' %>
+    <% if t.status == 'initializing' || t.status == 'active' || t.status == 'sending' %>
       <script>
           CampaignEditor.updateCampaigns.push(<%= t.id %>);
       </script>

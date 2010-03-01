@@ -2,13 +2,12 @@ require 'csv'
 require 'base64'
 require 'VRAPI/VRAPIDriver.rb'
 
-class Mailing::VerticalResponseSender
+class Mailing::VerticalResponseSender < Mailing::Base
   
   SENDING_WINDOW_SIZE = 250
   
   def initialize(campaign,options)
-    @campaign = campaign
-    @options = options
+    super(campaign, options)
     @sender_data = campaign.sender_data || {}
   end
   

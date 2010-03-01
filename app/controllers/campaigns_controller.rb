@@ -307,6 +307,8 @@ class CampaignsController < ModuleController
         archive_campaigns
       when 'copy'
         duplicate_campaigns
+      when 'pause'
+        pause_campaigns
       end
     end
 
@@ -327,7 +329,7 @@ class CampaignsController < ModuleController
   def update_campaigns
     @campaigns = params[:cid].collect do |cid|
       MarketCampaign.find_by_id(cid)
-    end
+    end.compact
   end
   
   def archive_campaigns
@@ -377,6 +379,31 @@ class CampaignsController < ModuleController
     campaign_action(params[:campaign],"Deleted Campaigns: ".t ) do |campaign|
       campaign.destroy
       true
+    end
+  end
+
+  def pause_campaigns
+    campaign_action(params[:campaign],"Paused Campaigns: ".t ) do |campaign|
+      if campaign.status == 'active'
+	campaign.status = 'pause'
+	campaign.save
+	true
+      else
+	false
+      end
+    end
+  end
+
+  def resend_campaigns
+    campaign_action(params[:campaign],"Resent Campaigns: ".t ) do |campaign|
+      if campaign.can_resend?
+	campaign.status = 'sending'
+	campaign.save
+	campaign.run_campaign
+	true
+      else
+	false
+      end
     end
   end
 
@@ -771,7 +798,19 @@ class CampaignsController < ModuleController
 
     render :partial => 'verify'
   end
-  
+
+  def resend_campaign
+    @campaign = MarketCampaign.find(params[:path][0])
+
+    if @campaign.can_resend?
+      @campaign.status = 'sending'
+      @campaign.save
+      @campaign.run_campaign
+    end
+
+    redirect_to :action => 'index'
+  end
+
   def send_sample
     @campaign = MarketCampaign.find(params[:path][0])
     generate_sample

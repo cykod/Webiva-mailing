@@ -25,7 +25,9 @@ class MarketCampaign < DomainModel
                          ['Generating Recipient List','initializing'], 
                          ['Sending','sending'],
                          ['Sending','active'],
-                         ['Sent','completed']
+                         ['Sent','completed'],
+                         ['Paused','pause'],
+                         ['Error','error']
                        ]
 
   QUEUE_WINDOW_SIZE = 1000
@@ -52,6 +54,10 @@ class MarketCampaign < DomainModel
   
   def under_construction?
     return %w(created setup).include?(self.status)
+  end
+
+  def can_resend?
+    return %w(error pause).include?(self.status)
   end
 
   def valid_market_segment?
