@@ -59,6 +59,7 @@ describe MarketCampaign do
     @config.options[:mailing_contact_email] = 'test@test.dev'
     @config.options[:mailing_default_from_name] = 'Testing'
     @config.save
+    DataCache.reset_local_cache
     vars = {}
     @campaign = MarketCampaign.new
     @campaign.add_delivery_variables(vars)
@@ -164,8 +165,7 @@ describe MarketCampaign do
       @mm.save.should be_true
 
       @user1 = EndUser.push_target('test1@test.dev')
-      @user2 = EndUser.push_target('test2@test.dev')
-      @campaign = MarketCampaign.create_custom_campaign('test', [@user1.id, @user2.id])
+      @campaign = MarketCampaign.create_custom_campaign('test', [@user1.id])
 
       @html = '<p>Please visit us at <a href="http://test.dev/">test.dev</a></p>'
       @text = 'Please visit us at http://test.dev/'
@@ -177,7 +177,7 @@ describe MarketCampaign do
     end
 
     it "should initialize the campaign" do
-      assert_difference 'MarketCampaignQueue.count', 2 do
+      assert_difference 'MarketCampaignQueue.count', 1 do
 	@campaign.send(:initialize_campaign)
       end
 
@@ -185,16 +185,15 @@ describe MarketCampaign do
       @campaign.market_campaign_message.message_body['body_html'].should == @html
       @campaign.market_campaign_message.message_body['body_text'].should == @text
 
-      MarketCampaignQueue.find_by_email(@user1.email).should_not be_nil
-      @queue = MarketCampaignQueue.find_by_email(@user2.email)
+      @queue = MarketCampaignQueue.find_by_email(@user1.email)
       @queue.should_not be_nil
       @queue.market_campaign_id.should == @campaign.id
-      @queue.model_id.should == @user2.id
+      @queue.model_id.should == @user1.id
       @queue.sent.should be_false
     end
 
     it "should send the campaign" do
-      assert_difference 'MarketCampaignQueue.count', 2 do
+      assert_difference 'MarketCampaignQueue.count', 1 do
 	@campaign.send_campaign
       end
 
@@ -208,7 +207,6 @@ describe MarketCampaign do
       @queue.handled.should be_true
 
       ActionMailer::Base.deliveries[0].to[0].should == 'test1@test.dev'
-      ActionMailer::Base.deliveries[1].to[0].should == 'test2@test.dev'
     end
   end
 end
