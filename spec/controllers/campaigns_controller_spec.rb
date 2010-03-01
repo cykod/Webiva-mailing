@@ -2,7 +2,7 @@ require  File.expand_path(File.dirname(__FILE__)) + "/../../../../../spec/spec_h
 
 describe CampaignsController do
 
-  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates, :market_link_entries
+  reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates, :market_link_entries, :site_modules, :configurations
 
   def create_ready_to_send_campaign
     @user1 = EndUser.push_target('test1@test.dev')
@@ -32,7 +32,7 @@ describe CampaignsController do
   end
 
   before(:each) do
-    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing')
+    mod = SiteModule.activate_module(Domain.find(DomainModel.active_domain_id),'mailing', :force => true)
     mod.update_attributes(:status => 'active')
   end
 
@@ -63,7 +63,9 @@ describe CampaignsController do
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true
 
-    Configuration.options.company_address = ''
+    @config = Configuration.retrieve(:options)
+    @config.options[:company_address] = ''
+    @config.save
 
     mock_editor
     get 'index'
@@ -85,8 +87,10 @@ describe CampaignsController do
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true
 
-    Configuration.options.mailing_contact_email = 'test@test.dev'
-    Configuration.options.company_address = '1 test lane'
+    @config = Configuration.retrieve(:options)
+    @config.options[:mailing_contact_email] = 'test@test.dev'
+    @config.options[:company_address] = '1 test lane'
+    @config.save
 
     mock_editor
     get 'index'
@@ -99,8 +103,10 @@ describe CampaignsController do
       @mm.module_name = '/mailing/mail'
       @mm.save.should be_true
 
-      Configuration.options.mailing_contact_email = 'test@test.dev'
-      Configuration.options.company_address = '1 test lane'
+      @config = Configuration.retrieve(:options)
+      @config.options[:mailing_contact_email] = 'test@test.dev'
+      @config.options[:company_address] = '1 test lane'
+      @config.save
 
       mock_editor
     end
@@ -680,8 +686,10 @@ describe CampaignsController do
       @mm = SiteVersion.default.root.add_subpage 'test', 'M'
       @mm.module_name = '/mailing/mail'
       @mm.save.should be_true
-      Configuration.options.mailing_contact_email = 'test@test.dev'
-      Configuration.options.company_address = '1 test lane'
+      @config = Configuration.retrieve(:options)
+      @config.options[:mailing_contact_email] = 'test@test.dev'
+      @config.options[:company_address] = '1 test lane'
+      @config.save
       @campaign = create_ready_to_send_campaign
       @campaign.status = 'initializing'
       @campaign.send_campaign

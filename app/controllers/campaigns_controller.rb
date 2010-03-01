@@ -29,7 +29,7 @@ class CampaignsController < ModuleController
                   'Email Campaigns' => { :action => 'index' }
 
   def verify_mail_module
-  
+
     if !check_mail_module
       redirect_to :action => :missing_mail_module 
       return false
@@ -218,7 +218,7 @@ class CampaignsController < ModuleController
     begin
     campaign_hash = params[:campaign_hash]
     queue_hash = params[:queue_hash]
-    
+          
     if queue_hash =='QUEUE'
 #      @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Image"))
       render :text => 'This message was sent during campaign preview and is no longer valid'
@@ -226,7 +226,7 @@ class CampaignsController < ModuleController
     else
       @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash,:lock => true) || raise(InvalidPageDataException.new("Invalid Image"))
       @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash, :lock=>true) || raise(InvalidPageDataException.new("Invalid Image"))
-      
+
       if !@queue.opened?
 	      # Update the number of openings
 	      @campaign.stat_opened += 1
