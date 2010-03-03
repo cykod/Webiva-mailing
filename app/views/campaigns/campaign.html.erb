@@ -151,6 +151,11 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
 </div>
 
 <% admin_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
+
+<% if @campaign.errors.on_base -%>
+<tr><td class="error" colspan='2' style="padding-bottom:10px;"><%= f.output_error_message('', :base) %></td></tr>
+<% end -%>
+
 <%= f.text_field :name, :vertical => true, :size => 60, :label => 'Campaign Title (For your use only)', :onkeypress => 'SegmentList.showTargets();' -%>
 <%= f.select(:sender_type, @senders, {}, {:label => 'Select Sender', :vertical => true, :onchange => 'SegmentList.changeAdvancedOptions(this.form);'}) if @senders.length > 1 -%>
 

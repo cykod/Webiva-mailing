@@ -396,14 +396,7 @@ class CampaignsController < ModuleController
 
   def resend_campaigns
     campaign_action(params[:campaign],"Resent Campaigns: ".t ) do |campaign|
-      if campaign.can_resend?
-	campaign.status = 'sending'
-	campaign.save
-	campaign.run_campaign
-	true
-      else
-	false
-      end
+      campaign.resend_campaign
     end
   end
 
@@ -438,6 +431,7 @@ class CampaignsController < ModuleController
       @campaign.attributes = params[:campaign]
 
       @campaign.valid?
+      @campaign.sender_class.valid?
 
       if @campaign.market_segment
 	if @campaign.market_segment.segment_type == 'subscription'
@@ -594,23 +588,32 @@ class CampaignsController < ModuleController
           
       if params[:message]
         if params[:edit] && params[:edit] != '0'
-	        mail_template = MailTemplate.find(params[:message])
+
+	  mail_template = MailTemplate.find(params[:message])
+
           if params[:edit] == 'duplicate'
             new_tpl = mail_template.duplicate
-            @campaign.mail_template_id =new_tpl.id
+            @campaign.mail_template_id = new_tpl.id
           else 
             @campaign.mail_template_id = mail_template.id
           end
+
           @campaign.edited_at = Time.now
-	  @campaign.status = 'setup'
-          @campaign.save
-          redirect_to :controller => :mail_manager, :action => :edit_template, :path => [@campaign.mail_template_id], :return => self.class.to_s.underscore, :return_id => @campaign.id
+	  @campaign.status = 'created'
+	  @campaign.save
+	  redirect_to :controller => :mail_manager, :action => :edit_template, :path => [@campaign.mail_template_id], :return => self.class.to_s.underscore, :return_id => @campaign.id
         else
-          @campaign.mail_template_id =params[:message]
+          @campaign.mail_template_id = params[:message]
           @campaign.edited_at = Time.now
 	  @campaign.status = 'setup'
-          @campaign.save
-          redirect_to :action => :confirm, :path => [ @campaign.id ]
+
+	  @campaign.valid?
+	  @campaign.sender_class.valid?
+
+	  if @campaign.errors.length == 0
+	    @campaign.save
+	    redirect_to :action => :confirm, :path => [ @campaign.id ]
+	  end
         end
       end
     
@@ -744,22 +747,34 @@ class CampaignsController < ModuleController
     return unless verify_campaign_setup
 
     unless @campaign.valid_market_segment?
+      @campaign.status = 'created'
+      @campaign.save
       redirect_to :action => :campaign, :path => [@campaign.id]
       return
     end
 
     unless @campaign.mail_template
+      @campaign.status = 'created'
+      @campaign.save
       redirect_to :action => :message, :path => [@campaign.id]
+      return
+    end
+
+    unless @campaign.sender_class.valid?
+      flash[:notice] = @campaign.errors.on_base if @campaign.errors.on_base
+      @campaign.status = 'created'
+      @campaign.save
+      redirect_to :action => :campaign, :path => [@campaign.id]
       return
     end
 
     generate_sample 
     @from_email = @preview_vars['system:from']
-    
+
     if @preview_vars['system:reply_to']
       @reply_to_email = @preview_vars['system:reply_to']
     end
-    
+
     setup_campaign_steps
     @campaign_step =  3
   end
@@ -769,12 +784,16 @@ class CampaignsController < ModuleController
     return unless verify_campaign_setup
 
     unless @campaign.valid_market_segment?
-      redirect_to :action => :campaign, :path => [@campaign.id]
+      render :update do |page|
+	page.redirect_to :action => :campaign, :path => [@campaign.id]
+      end
       return
     end
 
     unless @campaign.mail_template
-      redirect_to :action => :message, :path => [@campaign.id]
+      render :update do |page|
+	page.redirect_to :action => :message, :path => [@campaign.id]
+      end
       return
     end
 
@@ -801,13 +820,7 @@ class CampaignsController < ModuleController
 
   def resend_campaign
     @campaign = MarketCampaign.find(params[:path][0])
-
-    if @campaign.can_resend?
-      @campaign.status = 'sending'
-      @campaign.save
-      @campaign.run_campaign
-    end
-
+    @campaign.resend_campaign
     redirect_to :action => 'index'
   end
 
@@ -852,14 +865,14 @@ class CampaignsController < ModuleController
   
     # Send update stats command to a worker
     session[:mailing] ||= {}
-    session[:mailing][:worker_key] = DomainModel.run_worker('MarketCampaign',@campaign.id,'update_stats')
-    
+    session[:mailing][:worker_key] = @campaign.run_worker(:update_stats)
     
     render :inline => "#{'Updating campaign statistics'.t}<script>setTimeout(CampaignViewer.updateStatsStatus,1500);</script>"
   end
   
   def update_stats_status
     worker =  DomainModel.worker_results(session[:mailing][:worker_key])
+
     if worker 
       if worker[:processed] == true
         render :inline => "#{'Stats updated. Reloading page.'.t}<script>$('reload_frm').submit();</script>"
@@ -992,6 +1005,12 @@ class CampaignsController < ModuleController
 
   def self.mail_template_save(mail_template, controller)
     campaign = MarketCampaign.find(controller.params[:return_id])
+    campaign.sender_class.valid?
+    if campaign.errors.length > 0
+      mail_template.errors.add_to_base campaign.errors.on_base
+      return nil
+    end
+
     if campaign.under_construction?
       campaign.update_attributes(:mail_template_id => mail_template.id, :status => 'created')
       controller.url_for(:controller => 'campaigns', :action => 'message', :path => [campaign.id])

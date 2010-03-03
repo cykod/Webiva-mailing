@@ -84,6 +84,17 @@ class MarketCampaign < DomainModel
     self.run_worker(:send_campaign, parameters)
   end
 
+  def resend_campaign(parameters=nil)
+    return false unless self.can_resend?
+
+    self.status = 'sending'
+    self.error_message = nil
+    self.save
+    parameters = (parameters || {})[:resending] = true
+    self.run_campaign(parameters)
+    true
+  end
+
   def send_campaign(args=nil)
     # If we are initializing
     # need to create the queue

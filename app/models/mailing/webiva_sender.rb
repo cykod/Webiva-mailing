@@ -88,6 +88,8 @@ class Mailing::WebivaSender < Mailing::Base
 
       queues.each do |queue|
 	
+        queue.handled = true
+
         skip_target = UserUnsubscription.find_by_email(queue.email) ? true : false
         skip_target ||= RFC822::EmailAddress.match(queue.email).nil?
 
@@ -115,6 +117,13 @@ class Mailing::WebivaSender < Mailing::Base
 	    queue.sent_at = Time.now
 	    queue.sent = true
 	    sent_count += 1
+	  rescue SMTPError => e
+	    queue.error = true
+	    queue.handled = false
+	    @campaign.status = 'error'
+	    @campaign.error_message = e.to_s
+	    @campaign.save
+	    logger.error("Failed to send mail to #{queue.email} because '#{e}'")
 	  rescue Exception => e
 	    queue.error = true
 	    @campaign.status = 'error'
@@ -124,7 +133,6 @@ class Mailing::WebivaSender < Mailing::Base
 	  end
         end
         
-        queue.handled = true
         queue.save
 
         unless @campaign.status == 'active'
@@ -158,7 +166,13 @@ class Mailing::WebivaSender < Mailing::Base
   
   
   def send_sample!(email,mail_template,vars)
-    MailTemplateMailer.deliver_to_address(email,mail_template,vars,'QUEUE')
+    begin
+      MailTemplateMailer.deliver_to_address(email,mail_template,vars,'QUEUE')
+      true
+    rescue Exception => e
+      logger.error( "Send sample email to #{email} failed: #{e}" )
+      false
+    end
   end
   
   def create_hash(str)
