@@ -56,6 +56,7 @@ class Mailing::WebivaSender < Mailing::Base
     
     tracking_variables = vars
     #mail_template,tracking_variables = prepare_mail_template(mail_template,false)
+    mail_template.mailing_handler = Mailing::WebivaReceiver.to_s.underscore
     while true
       @campaign.reload
       # If the campaign has been paused or otherwise interrupted
