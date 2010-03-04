@@ -8,5 +8,4 @@ class Mailing::Base
   end
 
   def valid?; true; end
-  def test(mail_template,message,vars); true; end
 end
