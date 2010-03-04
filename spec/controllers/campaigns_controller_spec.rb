@@ -10,7 +10,7 @@ describe CampaignsController do
     @campaign = MarketCampaign.create_custom_campaign('campaign', [@user1.id, @user2.id])
     html = '<p>Please visit us at <a href="http://test.dev/">test.dev</a></p>'
     text = 'Please visit us at http://test.dev/'
-    @campaign.create_mail_template :name => 'test', :subject => 'test subject', :language => 'en', :template_type => 'campaign', :body_html => html, :body_text => text
+    @campaign.create_mail_template :name => 'test', :body_type => 'html,text', :subject => 'test subject', :language => 'en', :template_type => 'campaign', :body_html => html, :body_text => text
     @message = MarketCampaignMessage.create :market_campaign_id => @campaign.id
     @campaign.status = 'setup'
     @campaign.save
@@ -23,6 +23,10 @@ describe CampaignsController do
     @user2 = EndUser.push_target('test2@test.dev')
     @user2.tag('new')
     @segment = MarketSegment.create :name => 'test', :segment_type => 'members', :options => {:tags => 'new'}
+  end
+
+  def create_mail_template
+    @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign', :body_text => 'Test email body', :body_type => 'text'
   end
 
   def fake_net_http(response)
@@ -355,7 +359,7 @@ describe CampaignsController do
       @user1 = EndUser.push_target('test1@test.dev')
       @user2 = EndUser.push_target('test2@test.dev')
       @campaign = MarketCampaign.create_custom_campaign('campaign', [@user1.id, @user2.id])
-      @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+      @mail_template = create_mail_template
 
       values = {0 => 'email', 1 => 'name'}
       post 'message', :path => [@campaign.id], :message => @mail_template.id, :values => values, :fields => {0 => 'test'}
@@ -370,14 +374,14 @@ describe CampaignsController do
       @user1 = EndUser.push_target('test1@test.dev')
       @user2 = EndUser.push_target('test2@test.dev')
       @campaign = MarketCampaign.create_custom_campaign('campaign', [@user1.id, @user2.id])
-      @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+      @mail_template = create_mail_template
 
       assert_difference 'MailTemplate.count', 1 do
 	post 'message', :path => [@campaign.id], :message => @mail_template.id, :edit => 'duplicate'
       end
 
       @campaign.reload
-      @campaign.status.should == 'setup'
+      @campaign.status.should == 'created'
       @campaign.mail_template_id.should_not be_nil
       @campaign.mail_template_id.should_not == @mail_template.id
 
@@ -388,14 +392,14 @@ describe CampaignsController do
       @user1 = EndUser.push_target('test1@test.dev')
       @user2 = EndUser.push_target('test2@test.dev')
       @campaign = MarketCampaign.create_custom_campaign('campaign', [@user1.id, @user2.id])
-      @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+      @mail_template = create_mail_template
 
       assert_difference 'MailTemplate.count', 0 do
 	post 'message', :path => [@campaign.id], :message => @mail_template.id, :edit => 'modify'
       end
 
       @campaign.reload
-      @campaign.status.should == 'setup'
+      @campaign.status.should == 'created'
       @campaign.mail_template_id.should_not be_nil
       @campaign.mail_template_id.should == @mail_template.id
 
@@ -428,14 +432,14 @@ describe CampaignsController do
       @user2 = EndUser.push_target('test2@test.dev')
       @campaign = MarketCampaign.create_custom_campaign('campaign', [@user1.id, @user2.id])
       @message = MarketCampaignMessage.create :market_campaign_id => @campaign.id
-      @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+      @mail_template = create_mail_template
 
       get 'preview_template', :path => [@campaign.id, @mail_template.id]
       response.should render_template('preview_template')
     end
 
     it "should be able to delete a template" do
-      @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+      @mail_template = create_mail_template
       assert_difference 'MailTemplate.count', -1 do
 	post 'delete_template', :template_id => @mail_template.id
       end
@@ -471,7 +475,7 @@ describe CampaignsController do
       @campaign.market_segment_id = nil
       @campaign.save
       get 'verify', :path => [@campaign.id]
-      response.should redirect_to(:action => 'campaign', :path => [@campaign.id])
+      response.body.should include("/website/campaigns/campaign/#{@campaign.id}")
     end
 
     it "should redirect to message if missing mail template" do
@@ -481,7 +485,7 @@ describe CampaignsController do
       @message = MarketCampaignMessage.create :market_campaign_id => @campaign.id
 
       get 'verify', :path => [@campaign.id]
-      response.should redirect_to(:action => 'message', :path => [@campaign.id])
+      response.body.should include("/website/campaigns/message/#{@campaign.id}")
     end
 
     it "should render the verify page" do
@@ -648,7 +652,7 @@ describe CampaignsController do
 
   it "should handle saving a template to a campaign" do
     @campaign = create_ready_to_send_campaign
-    @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+    @mail_template = create_mail_template
     controller.params[:return] = CampaignsController.to_s.underscore
     controller.params[:return_id] = @campaign.id
     CampaignsController.mail_template_save(@mail_template, controller)
@@ -660,7 +664,7 @@ describe CampaignsController do
     @campaign = create_ready_to_send_campaign
     @campaign.status = 'active'
     @campaign.save
-    @mail_template = MailTemplate.create :name => 'Test Template', :subject => 'Test Subject', :language => 'en', :template_type => 'campaign'
+    @mail_template = create_mail_template
     controller.params[:return] = CampaignsController.to_s.underscore
     controller.params[:return_id] = @campaign.id
     CampaignsController.mail_template_save(@mail_template, controller)

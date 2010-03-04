@@ -90,7 +90,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
 
   def login(raise_exception=true)
     begin
-      @vr = VRAPI::VRAPIPortType.new
+      @vr ||= VRAPI::VRAPIPortType.new
    
       unless self.refresh
 	@sid = @vr.login(

@@ -53,8 +53,8 @@ describe Mailing::VerticalResponseSender do
     message = @campaign.market_campaign_message
 
     @vr = VRAPI::VRAPIPortType.new
-    VRAPI::VRAPIPortType.should_receive(:new).and_return(@vr)
-    @vr.should_receive(:login).and_return("session")
+    VRAPI::VRAPIPortType.should_receive(:new).once.and_return(@vr)
+    @vr.should_receive(:login).any_number_of_times.and_return("session")
     @vr.should_receive(:createEmailCampaign).and_return(3)
     @vr.should_receive(:createList).and_return(2)
     @vr.should_receive(:appendFileToList)
