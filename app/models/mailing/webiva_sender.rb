@@ -113,8 +113,8 @@ class Mailing::WebivaSender < Mailing::Base
           @campaign.add_delivery_variables(vars)
           
 	  begin
+	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
 	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
-	    queue.message_id = mail.message_id
 	    queue.sent_at = Time.now
 	    queue.sent = true
 	    sent_count += 1

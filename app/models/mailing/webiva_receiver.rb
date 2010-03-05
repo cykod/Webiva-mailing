@@ -37,6 +37,8 @@ class Mailing::WebivaReceiver
       status_message = 'Success'
     end
 
+    return unless status_message == 'Failure'
+
     original_message_part = email.parts.detect do |part|
       part.content_type == 'message/rfc822'
     end
@@ -45,7 +47,27 @@ class Mailing::WebivaReceiver
 
     parsed_msg = TMail::Mail.parse(original_message_part.body)
 
-    logger.warn("#{parsed_msg.message_id} status:#{status_message} #{status_code}")
+    webiva_message_id = (parsed_msg.header['x-webiva-message-id'] || '').to_s
+    return unless webiva_message_id
+
+    campaign_identifier_hash, queue_hash = webiva_message_id.split(/\//)
+    return unless campaign_identifier_hash && queue_hash
+
+    campaign = MarketCampaign.find_by_identifier_hash(campaign_identifier_hash)
+    unless campaign
+      logger.warn("invalid identifier_hash(#{campaign_identifier_hash}) for campaign")
+      return
+    end
+
+    queue = campaign.market_campaign_queues.find_by_queue_hash(queue_hash)
+    if queue
+      queue.bounced = true
+      queue.save
+      campaign.stat_bounced_back = campaign.market_campaign_queues.count(:conditions => {:bounced => true})
+      campaign.save
+    else
+      logger.warn("Received a bounce for campaign:#{campaign.name}(#{campaign.id}) to: #{parsed_msg.to} with but no campaign market queue was found for #{queue_hash}.")
+    end
   end
 end
   
