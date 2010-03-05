@@ -47,7 +47,7 @@ class Mailing::WebivaReceiver
 
     parsed_msg = TMail::Mail.parse(original_message_part.body)
 
-    webiva_message_id = (parsed_msg.header['x-webiva-message-id'] || '').to_s
+    webiva_message_id = parsed_msg.header_string('x-webiva-message-id')
     return unless webiva_message_id
 
     campaign_identifier_hash, queue_hash = webiva_message_id.split(/\//)
