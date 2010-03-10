@@ -1,11 +1,11 @@
 class Mailing::AdminController < ModuleController
 
-  permit 'editor_mail_config'
+  permit 'mailing_mail_config'
 
   component_info 'Mailing', :description => 'Emailing Campaigns Component', 
                               :access => :private
-
-  register_permissions :editor, [  [ :mailing, 'Send Email Campaigns', 'Manage Email Campaigns' ], [ :mail_config, 'Configure Email Campaign', 'Configure Email Campaigns'] ]
+  register_permission_category :mailing, "Mailing" ,"Permissions for Mailing Campaigns"
+  register_permissions :mailing, [  [ :mailing, 'Send Email Campaigns', 'Manage Email Campaigns' ], [ :mail_config, 'Configure Email Campaign', 'Configure Email Campaigns'] ]
 
   module_for :mail, 'Mail', :description => 'Add E-Marketing Pages to your site'
   
@@ -30,7 +30,7 @@ class Mailing::AdminController < ModuleController
   def self.navigation_emarketing_handler_info
     {:name => 'E-Marketing Pages', 
      :pages => 
-        [ [ "Email Campaigns", :editor_mailing, "emarketing_campaigns.gif", {  :controller => '/campaigns', :action => 'index' },
+        [ [ "Email Campaigns", :mailing_mailing, "emarketing_campaigns.gif", {  :controller => '/campaigns', :action => 'index' },
          "Create and Review E-mail Marketing Campaigns" ]
         ]
     }

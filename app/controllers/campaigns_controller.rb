@@ -7,7 +7,7 @@ class CampaignsController < ModuleController
 
   layout 'manage'
   
-  permit 'editor_mailing', :except => [ :view, :link, :image ]
+  permit 'mailing_mailing', :except => [ :view, :link, :image ]
   
   component_info 'Mailing'
   
