@@ -84,16 +84,13 @@
     </p>
     <ol class='admin_list'>
       <li> <%= "Campaign Name:".t %> 
-	  <%= link_to @campaign.name,:controller => 'campaigns', :action => :edit, :path => @campaign.id  %>
+	  <%= link_to @campaign.name,:controller => 'campaigns', :action => :campaign, :path => @campaign.id  %>
       </li>
       <li> <%= "Target:".t %> 
-	  <%= link_to @campaign.market_segment.name,:controller => 'campaigns', :action => :segments, :path => @campaign.id  %>
-      </li>
-      <li> <%= "Message:".t %>
-	  <%= link_to @campaign.mail_template.name,:controller => 'campaigns', :action => :message, :path => @campaign.id  %>
+	  <%= link_to @campaign.market_segment.name,:controller => 'campaigns', :action => :campaign, :path => @campaign.id  %>
       </li>
       <li> <%= "Options:".t %>
-	      <a href='<%= url_for :controller => 'campaigns', :action => :options, :path => @campaign.id %>'>
+	      <a href='<%= url_for :controller => 'campaigns', :action => :campaign, :path => @campaign.id %>'>
 	      <% if @campaign.sender_type != 'mailing/webiva_sender' %>
 	          <%= @campaign.sender_class.options_description %>
 	      <% else -%>
@@ -102,6 +99,9 @@
 		      <%= @campaign.view_online? ?  "Show View Online Link".t : "Do Not Show View Online Link".t %>
 	      <% end -%>
 	      </a>
+      </li>
+      <li> <%= "Message:".t %>
+	  <%= link_to @campaign.mail_template.name,:controller => 'campaigns', :action => :message, :path => @campaign.id  %>
       </li>
     </ol>
     <%= "This Campaign will be sent to:".t %> <br/><b><%= @campaign.market_segment.target_count %> <%= "Recipients".t %></b> 
