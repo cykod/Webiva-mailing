@@ -1,7 +1,7 @@
 
-class Mailing::ReportsController < ApplicationController
+class Mailing::ReportsController < ModuleController
 
-
+  component_info 'mailing'
 
 
   def self.members_view_handler_info
