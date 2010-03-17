@@ -17,6 +17,7 @@ describe Mailing::ReportsController do
   end
 
   before(:each) do
+    mock_editor
     @mm = SiteVersion.default.root.add_subpage 'test', 'M'
     @mm.module_name = '/mailing/mail'
     @mm.save.should be_true

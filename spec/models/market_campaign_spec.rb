@@ -206,7 +206,7 @@ describe MarketCampaign do
       @queue.sent.should be_true
       @queue.handled.should be_true
 
-      ActionMailer::Base.deliveries[0].to[0].should == 'test1@test.dev'
+      ActionMailer::Base.deliveries[-1].to[0].should == 'test1@test.dev'
     end
   end
 end
