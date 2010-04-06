@@ -1,14 +1,15 @@
 
-class Mailing::ReportsController < ApplicationController
-
-
+class Mailing::ReportsController < ModuleController
+  component_info 'Mailing'
+  permit 'editor_mailing'
 
 
   def self.members_view_handler_info
     { 
       :name => 'E-Mails',
       :controller => '/mailing/reports',
-      :action => 'user_mailing'
+      :action => 'user_mailing',
+      :permission => 'editor_mailing'
     }
   end
   
