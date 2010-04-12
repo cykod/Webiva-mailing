@@ -1,7 +1,7 @@
 
 class Mailing::ReportsController < ModuleController
-
-  component_info 'mailing'
+  component_info 'Mailing'
+  permit 'editor_mailing'
 
   permit 'mailing_mailing'
 
@@ -10,7 +10,7 @@ class Mailing::ReportsController < ModuleController
       :name => 'E-Mails',
       :controller => '/mailing/reports',
       :action => 'user_mailing',
-      :permit => 'mailing_mailing'
+      :permission => 'editor_mailing'
     }
   end
   
