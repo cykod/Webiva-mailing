@@ -102,8 +102,8 @@ class CampaignsController < ModuleController
     case @campaign.data_model
     when 'subscription':
       mdl = UserSubscriptionEntry
-    when 'members':
-      mdl = EndUser
+    when 'user_segment':
+      mdl = UserSegment
     else
       mdl = ContentModel.find(@campaign.data_model).content_model
     end
@@ -112,6 +112,8 @@ class CampaignsController < ModuleController
       entry = mdl.find(:first)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
+      elsif @campaign.data_model == 'user_segment'
+        entry = entry.find { |user| true }
       end
       
       vars = message.field_values(entry.attributes,'QUEUE')
@@ -121,11 +123,12 @@ class CampaignsController < ModuleController
       entry = mdl.find_by_id(@queue.model_id)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
+      elsif @campaign.data_model == 'user_segment'
+        entry = entry.find { |user| true }
       end
       
       vars = message.field_values(entry.attributes,@queue.queue_hash)
       vars.merge!(@campaign.add_tracking_links(tracking_variables,@queue.queue_hash))
-      
     end
     
     
@@ -436,10 +439,8 @@ class CampaignsController < ModuleController
       if @campaign.market_segment
 	if @campaign.market_segment.segment_type == 'subscription'
 	  @campaign.data_model = 'subscription'
-	elsif @campaign.market_segment.segment_type == 'members'
-	  @campaign.data_model = 'members'
-	elsif @campaign.market_segment.segment_type == 'custom'
-	  @campaign.data_model = 'members'
+	elsif @campaign.market_segment.segment_type == 'user_segment'
+	  @campaign.data_model = 'user_segment'
 	else
 	  market_segment = MarketSegment.find(@campaign.market_segment_id)
 	  @campaign.data_model = market_segment.options[:content_model_id]
@@ -499,7 +500,7 @@ class CampaignsController < ModuleController
 
     @segments = MarketSegment.for_campaign(@campaign).with_segment_type(@segment.segment_type).order_by_name.find(:all)
 
-    @segment_types = [['Subscriptions', 'subscription'], ['Target Segmentation', 'members'], ['Special Import', 'content_model']]
+    @segment_types = [['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
 
     render :partial => 'segments' if display
   end
