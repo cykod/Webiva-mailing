@@ -33,9 +33,12 @@ class MarketCampaign < DomainModel
   QUEUE_WINDOW_SIZE = 1000
 
   def self.create_custom_campaign(name,user_ids)
-    campaign = self.create(:name => name,:campaign_type=>'email',:data_model => 'members')
-    segment = MarketSegment.create_custom(campaign,user_ids)
-    campaign.update_attribute(:market_segment_id, segment.id)
+    campaign = self.create(:name => name,:campaign_type=>'email',:data_model => 'user_segment')
+    user_segment = UserSegment.create(:name => name, :segment_type => 'custom')
+    user_segment.add_ids user_ids
+    user_segment.market_segment.market_campaign_id = campaign.id
+    user_segment.market_segment.save
+    campaign.update_attribute(:market_segment_id, user_segment.market_segment_id)
     campaign
   end
   

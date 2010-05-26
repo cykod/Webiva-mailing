@@ -26,8 +26,8 @@
   <td><% if t.market_segment  %>
       <%=
          case t.market_segment.segment_type
-         when 'members':
-          'Segmentation'.t
+         when 'user_segment':
+          'User List'.t
          when 'subscription':
           t.market_segment.user_subscription.name
          else 

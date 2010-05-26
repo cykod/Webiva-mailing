@@ -474,7 +474,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
       case @campaign.data_model
       when 'subscription':
        mdl = UserSubscriptionEntry
-      when 'members':
+      when 'user_segment':
        mdl = EndUser
       else
        mdl = ContentModel.find(@campaign.data_model).content_model

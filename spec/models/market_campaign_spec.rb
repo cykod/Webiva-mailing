@@ -28,11 +28,11 @@ describe MarketCampaign do
     @campaign.id.should_not be_nil
     @campaign.name.should == 'test'
     @campaign.campaign_type.should == 'email'
-    @campaign.data_model.should == 'members'
+    @campaign.data_model.should == 'user_segment'
+    @campaign.market_segment.user_segment.end_user_ids == [user1.id, user2.id]
     @campaign.market_segment.should_not be_nil
-    @campaign.market_segment.options[:user_ids].should == [user1.id, user2.id]
-    @campaign.market_segment.segment_type.should == 'custom'
-    @campaign.market_segment.name.should == 'test Custom Segment'
+    @campaign.market_segment.segment_type.should == 'user_segment'
+    @campaign.market_segment.name.should == 'test'
     @campaign.market_segment.market_campaign_id.should == @campaign.id
   end
 

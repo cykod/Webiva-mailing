@@ -29,8 +29,6 @@ describe Mailing::ReportsController do
   end
 
   it "should handle campaign queues list" do 
-    mock_editor
-
     # Test all the permutations of an active table
     controller.should handle_active_table(:queue_table) do |args|
       args[:path] = [@user1.id]
@@ -39,8 +37,6 @@ describe Mailing::ReportsController do
   end
 
   it "should render user_mailing" do
-    mock_editor
-
     get 'user_mailing', :path => [@user1.id]
     response.should render_template('_user_mailing')
   end

@@ -22,7 +22,8 @@ describe CampaignsController do
     @user1.tag('new')
     @user2 = EndUser.push_target('test2@test.dev')
     @user2.tag('new')
-    @segment = MarketSegment.create :name => 'test', :segment_type => 'members', :options => {:tags => 'new'}
+    @user_segment = UserSegment.create :name => 'test', :segment_type => 'filtered', :segment_options_text => 'email.like("%@test.dev")'
+    @segment = @user_segment.market_segment
   end
 
   def create_mail_template
@@ -158,13 +159,13 @@ describe CampaignsController do
     it "should be able to create a campaign" do
       @segment = create_members_segment
       assert_difference 'MarketCampaign.count', 1 do
-	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => @segment.id}, :segment => {:segment_type => 'members'}
+	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => @segment.id}, :segment => {:segment_type => 'user_segment'}
       end
 
       @campaign = MarketCampaign.find(:last)
       @campaign.name.should == 'Test Campaign'
       @campaign.market_segment_id.should == @segment.id
-      @campaign.data_model.should == 'members'
+      @campaign.data_model.should == 'user_segment'
       @campaign.status.should == 'created'
 
       response.should redirect_to(:action => 'message', :path => [@campaign.id])
@@ -172,15 +173,15 @@ describe CampaignsController do
 
     it "should not be able to create a campaign without segment" do
       assert_difference 'MarketCampaign.count', 0 do
-	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => nil}, :segment => {:segment_type => 'members'}
+	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => nil}, :segment => {:segment_type => 'user_segment'}
       end
       response.should render_template('campaign')
     end
 
     it "should not be able to create a campaign with a segment that has no entries" do
-      @segment = MarketSegment.create :name => 'test', :segment_type => 'members', :options => {:conditions => 'id = -1'}
+      @segment = MarketSegment.create :name => 'test', :segment_type => 'user_segment', :options => {:conditions => 'id = -1'}
       assert_difference 'MarketCampaign.count', 0 do
-	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => @segment.id}, :segment => {:segment_type => 'members'}
+	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => @segment.id}, :segment => {:segment_type => 'user_segment'}
       end
       response.should render_template('campaign')
     end
@@ -188,13 +189,13 @@ describe CampaignsController do
     it "should be able to create a campaign and set advanced options" do
       @segment = create_members_segment
       assert_difference 'MarketCampaign.count', 1 do
-	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => @segment.id, :from => 'custom', :from_name => 'No Reply', :from_email => 'noone', :reply_to_name => 'Replier', :reply_to_email => 'support'}, :segment => {:segment_type => 'members'}
+	post 'campaign', :campaign => {:name => 'Test Campaign', :market_segment_id => @segment.id, :from => 'custom', :from_name => 'No Reply', :from_email => 'noone', :reply_to_name => 'Replier', :reply_to_email => 'support'}, :segment => {:segment_type => 'user_segment'}
       end
 
       @campaign = MarketCampaign.find(:last)
       @campaign.name.should == 'Test Campaign'
       @campaign.market_segment_id.should == @segment.id
-      @campaign.data_model.should == 'members'
+      @campaign.data_model.should == 'user_segment'
       @campaign.status.should == 'created'
       @campaign.from.should == 'custom'
       @campaign.from_name.should == 'No Reply'
