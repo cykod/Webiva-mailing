@@ -2,13 +2,13 @@
 <tr>
   <td>
     <table>
-      <tr><td valign='baseline'><%= "From:".t %></td><td><%= h @from_email %></td></tr>
+      <tr><td class='label'><%= "From:".t %></td><td class='field'><%= h @from_email %></td></tr>
       <% if @reply_to_email %>
-      <tr><td valign='baseline'><%= "Reply-To:".t %></td><td><%= h @reply_to_email %></td></tr>
+      <tr><td class='label'><%= "Reply-To:".t %></td><td class='field'><%= h @reply_to_email %></td></tr>
       <% end -%>
-      <tr><td valign='baseline'><%= "To:".t %></td><td><%= @target[0] %></td></tr>
-      <tr><td valign='baseline'><%= "Subject:".t %></td><td><%= @mail_template.render_subject(@preview_vars) %></td></tr>
-      <tr><td valign='baseline'><%= "Attachments:".t %></td><td>
+      <tr><td class='label'><%= "To:".t %></td><td class='field'><%= @target[0] %></td></tr>
+      <tr><td class='label'><%= "Subject:".t %></td><td class='field'><%= @mail_template.render_subject(@preview_vars) %></td></tr>
+      <tr><td class='label'><%= "Attachments:".t %></td><td class='field'>
         <% if @mail_template.domain_files.length > 0 %>
           <% @mail_template.domain_files.each do |df| %>
             <%= link_to df.name, df.url -%><br/>

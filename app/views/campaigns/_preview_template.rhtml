@@ -1,4 +1,4 @@
-      <div id='preview_title' style='background-color:#f2ecde; padding:5px;'>
+      <div id='preview_title' style='background-color:#eee; padding:5px;'>
         <%= render :partial => 'message_preview' if @campaign.mail_template %>
       </div>
       <div id='preview_body_html' <%="style='display:none;'" unless @mail_template && @mail_template.is_html %> >

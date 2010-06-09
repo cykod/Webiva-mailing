@@ -142,38 +142,56 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
   }
 </script>
 
-<div class='admin_content' style='padding-bottom: 30px;'>
 <%= render :partial => 'campaign_steps' %>
+<hr/>
 
-<div style="width:800px; padding-left:20px;">
-<div id="buttons" style="float:right; text-align:center; padding:15px 0; width: 150px; background-color:#eee; <%= 'display:none;' unless showAllOptions %>">
-<a class="link_button" href="javascript:void(0);" onclick="$('campaign_form').submit();">Next</a>
-</div>
+<div class='admin_form admin_content' style='padding-bottom: 30px;'>
 
-<% admin_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
+<% cms_unstyled_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
+
+<h1 class="lightblue">Setup</h1>
 
 <% if @campaign.errors.on_base -%>
-<tr><td class="error" colspan='2' style="padding-bottom:10px;"><%= f.output_error_message('', :base) %></td></tr>
+<div class="error" style="padding-bottom:10px;"><%= f.output_error_message('', :base) %></div>
 <% end -%>
 
-<%= f.text_field :name, :vertical => true, :size => 60, :label => 'Campaign Title (For your use only)', :onkeypress => 'SegmentList.showTargets();' -%>
-<%= f.select(:sender_type, @senders, {}, {:label => 'Select Sender', :vertical => true, :onchange => 'SegmentList.changeAdvancedOptions(this.form);'}) if @senders.length > 1 -%>
-
-<tbody id="segments" <%= "style='display:none;'" unless showAllOptions %>>
-<%= render :partial => 'segments' %>
-</tbody>
-
-<tbody id="advanced_options_toggle" <%= "style='display:none;'" unless showAllOptions %>>
-<tr><td colspan='2' style="padding-top: 10px;"><h2><%= 'Advanced Options'.t %>
-<span style="font-size:11px; font-weight:normal;">(<a id="advanced_options_toggle_link" href='javascript:void(0);' onclick="SegmentList.toggleAdvancedOptions();" style="font-weight:bold;"><%= 'show'.t %></a>)</span>
-</h2></td></tr>
-</tbody>
-
-<tbody id="advanced_options" style='display:none;'>
-<%= render :partial => 'advanced_options' %>
-</tbody>
-
-<% end -%>
+<div align='left' style="padding:7px 0 7px 0;">
+<h4><%= "Create Your E-mail Campaign Title".t %> <span class="description"><%= '(for your use only)'.t %></span></h4>
 </div>
+
+<div>
+<%= f.text_field :name, :vertical => true, :size => 60, :onkeypress => 'SegmentList.showTargets();' -%>
+</div>
+
+<% if @senders.length > 1 -%>
+<div align='left' style="padding:7px 0 7px 0;">
+<h4><%= 'Select Sender'.t %></h4>
+</div>
+<div>
+<%= f.select(:sender_type, @senders, {}, {:label => 'Select Sender', :vertical => true, :onchange => 'SegmentList.changeAdvancedOptions(this.form);', :style => 'width:250px'}) -%>
+</div>
+<% end -%>
+
+<div id="segments" <%= "style='display:none;'" unless showAllOptions %>>
+<%= render :partial => 'segments' %>
+</div>
+
+<div id="advanced_options_toggle" <%= "style='display:none;'" unless showAllOptions %>>
+<h1 class="lightblue" style="padding-top:20px;">
+<%= 'Advanced Options'.t %>
+<span style="font-size:11px; font-weight:normal;">(<a id="advanced_options_toggle_link" href='javascript:void(0);' onclick="SegmentList.toggleAdvancedOptions();" style="font-weight:bold;"><%= 'show'.t %></a>)</span>
+</h1>
+</div>
+
+<div id="advanced_options" style='display:none; padding-left:5px;'>
+<%= render :partial => 'advanced_options' %>
+</div>
+
+
+<div id="buttons" style="padding:15px 0; width: 150px; <%= 'display:none;' unless showAllOptions %>">
+<button class="submit_button" onclick="$('campaign_form').submit(); return false;"><%= 'Next >>'.t %></button>
+</div>
+
+<% end -%>
 
 </div>

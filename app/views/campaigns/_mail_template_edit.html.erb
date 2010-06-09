@@ -1,6 +1,5 @@
-<div class='admin_content'>
 <%=
 campaign = MarketCampaign.find_by_id(params[:return_id])
 render :partial => '/campaigns/campaign_steps', :locals => {:campaign_id => campaign.id, :campaign_step => 2, :campaign_max_step => 2} if campaign
 -%>
-</div>
+<hr/>

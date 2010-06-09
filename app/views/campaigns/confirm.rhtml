@@ -71,18 +71,29 @@
   }
 </script>
 
-
-<div class='admin_content'>
 <%= render :partial => 'campaign_steps' %>
+<hr/>
 
-<table width='100%'>
+<div class='admin_content admin_form'>
+
+<h1 class="lightblue" style="padding-bottom:15px;"><%= 'Confirm & Send'.t %></h1>
+
+<table class="display_table" style="padding-bottom:20px;">
 <tr>
-<td width='350' valign='top' style='padding:0px 20px;'>
+<th width="350"><%= 'Campaign Details'.t %></th>
+<td class="spacer" rowspan="6"></td>
+<td class="separator" rowspan="6"></td>
+<td class="spacer" rowspan="6"></td>
+<th width="700"><%= 'Preview Campaign Message'.t %></th>
+</tr>
 
-    <p>
+<tr>
+<td height="300" style="color:#444;">
+    <p style="line-height: 20px; padding-bottom:5px;">
       <%= h sprintf("The %s Marking Campaign is ready to be sent. Please confirm all options below and click send to send." ,@campaign.name)  %>
     </p>
-    <ol class='admin_list'>
+    <div style="padding-left:25px;">
+    <ol class='admin_list' style="padding-bottom:10px;">
       <li> <%= "Campaign Name:".t %> 
 	  <%= link_to @campaign.name,:controller => 'campaigns', :action => :campaign, :path => @campaign.id  %>
       </li>
@@ -104,40 +115,49 @@
 	  <%= link_to @campaign.mail_template.name,:controller => 'campaigns', :action => :message, :path => @campaign.id  %>
       </li>
     </ol>
+    </div>
     <%= "This Campaign will be sent to:".t %> <br/><b><%= @campaign.market_segment.target_count %> <%= "Recipients".t %></b> 
       (<%= link_to "See Full List".t, { :action => "target_list", :path => @campaign.id}, :popup => ['Target List', 'height=400,width=600,scrollbars=yes'] %>)
-      <br/>
-      <br/>
-      <div style='border:1px solid #CCCCCC; margin:5px; padding:5px; '>
+
+      <div style="padding-top:25px;">
 	<form onsubmit='CampaignConfirmation.sendSample(); return false;'> 
-	    <%= "Send a Sample Email:".t %><br/>
+	    <h4><%= "Send a Sample Email".t %></h4>
 	    <input type='text' name='email' id='sample_email' value='<%= myself.email %>' /> 
-	    <input id='send_butt' type='submit' value='<%= "Send".t %>'/>
+	    <input id='send_butt' type='submit' value='<%= "Send >>".t %>'/>
 	    <div><span id='sent_sample' style='display:none;'></span>&nbsp;
 	    </div>
 	</form>
       </div>
-    
-    
-      <br/><br/>
-      <div align='center' style='margin:5px;'>
-        <%= form_tag('', :onsubmit=>'CampaignConfirmation.verify(); return false;') -%>
-	  <input type='hidden' name='send_campaign' value='1' />
-	<input type='submit' value='<%= "Send Campaign!".t %>' style='padding:5px;'  />
-	</form>
-      </div>
-    
-    
   </td>
-  <td valign='top' style='padding-right:20px;'>
-      <b><%= "Preview Campaign Message".t %></b><br/>
-      <div  id='preview_template' style='border:1px solid#000000;'>
+
+  <td rowspan="3">
+      <div id='preview_template' style="padding-bottom:5px;">
 	<%= render :partial => 'preview_template' %>
       </div>
   </td>
 </tr>
-</table>
 
-</div>
+<tr>
+<td class="base">&nbsp;</td>
+</tr>
+
+<tr>
+  <td>
+    <h1 class="lightblue" style="padding:15px 0;"><%= 'Send'.t %></h1>
+    <div>
+        <%= form_tag('', :onsubmit=>'CampaignConfirmation.verify(); return false;') -%>
+	  <input type='hidden' name='send_campaign' value='1' />
+	<input type='submit' value='<%= "Send Campaign! >>".t %>' style='padding:5px;'  />
+	</form>
+    </div>
+  </td>
+</tr>
+
+<tr>
+<td class="base">&nbsp;</td>
+<td class="base">&nbsp;</td>
+</tr>
+
+</table>
 
 </div>
