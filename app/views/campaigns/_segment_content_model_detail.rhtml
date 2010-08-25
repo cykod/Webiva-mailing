@@ -20,7 +20,7 @@
 </tr>
 <tr>
   <td class="label"><%= "Content Model:".t %></td>
-  <td class="field"><%= market_segment.content_model.name %>
+  <td class="field"><%= market_segment.content_model ? market_segment.content_model.name : 'Invalid'.t %>
 </tr>
 <tr>
   <td class="label"><%= "Members:".t %></td>

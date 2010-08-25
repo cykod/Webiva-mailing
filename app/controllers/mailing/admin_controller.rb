@@ -17,7 +17,7 @@ class Mailing::AdminController < ModuleController
   register_handler :mailing, :receiver, "Mailing::WebivaReceiver"
   register_handler :mailing, :sender, "Mailing::VerticalResponseSender"
   
-  register_handler :navigation, :emarketing, "Mailing::AdminController"
+  register_handler :navigation, :mail, "Mailing::AdminController"
   
   register_handler :mail_template, :edit, 'CampaignsController'
 
@@ -27,8 +27,8 @@ class Mailing::AdminController < ModuleController
                   'Modules' =>  { :controller => '/modules' },
                   'Mailing Module Options' => { :action => 'options' }
   
-  def self.navigation_emarketing_handler_info
-    {:name => 'E-Marketing Pages', 
+  def self.navigation_mail_handler_info
+    {:name => 'Mail Pages', 
      :pages => 
         [ [ "Email Campaigns", :mailing_mailing, "emarketing_campaigns.gif", {  :controller => '/campaigns', :action => 'index' },
          "Create and Review E-mail Marketing Campaigns" ]

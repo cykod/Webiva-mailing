@@ -21,11 +21,11 @@ class CampaignsController < ModuleController
   
   before_filter :verify_mail_module, :except => ['missing_mail_module', 'mail_module_setup']
   
-  cms_admin_paths "e_marketing",
+  cms_admin_paths "mail",
                   'Content' => { :controller => '/content' },
                   'Options' =>   { :controller => '/options' },
                   'Modules' =>  { :controller => '/modules' },
-                  'E-marketing' => { :controller => 'emarketing' },
+                  'Mail' => { :controller => '/mail_manager' },
                   'Email Campaigns' => { :action => 'index' }
 
   def verify_mail_module
@@ -249,7 +249,7 @@ class CampaignsController < ModuleController
   end
 
   def missing_mail_module
-    cms_page_path ['E-marketing','Email Campaigns'], 'Missing Mail Module'
+    cms_page_path ['Mail','Email Campaigns'], 'Missing Mail Module'
 
     if check_mail_module
       redirect_to :action => 'index'
@@ -266,7 +266,7 @@ class CampaignsController < ModuleController
   end
 
   def mail_module_setup
-    cms_page_path ['E-marketing','Email Campaigns'], 'Mail Module Setup'
+    cms_page_path ['Mail','Email Campaigns'], 'Mail Module Setup'
 
     @options =  Configuration.options(params[:options])
     
@@ -322,7 +322,7 @@ class CampaignsController < ModuleController
   end
 
   def index
-    cms_page_path ['E-marketing'], 'Email Campaigns'
+    cms_page_path ['Mail'], 'Email Campaigns'
     
     page = params[:page] || 1
     
@@ -417,7 +417,7 @@ class CampaignsController < ModuleController
       return unless verify_campaign_setup
     end
 
-    cms_page_path ['E-marketing', 'Email Campaigns'], @campaign.id ? 'Edit Campaign' : 'New Campaign'
+    cms_page_path ['Mail', 'Email Campaigns'], @campaign.id ? 'Edit Campaign' : 'New Campaign'
 
     @senders = get_handler_options(:mailing,:sender).find_all { |opt| opts.enabled_senders.include?(opt[1]) }
 
@@ -576,7 +576,7 @@ class CampaignsController < ModuleController
 
     @message = @campaign.market_campaign_message || @campaign.create_market_campaign_message
     
-    cms_page_path ['E-marketing','Email Campaigns'], 'Select Campaign Template'
+    cms_page_path ['Mail','Email Campaigns'], 'Select Campaign Template'
     
     if request.post?
     
@@ -742,7 +742,7 @@ class CampaignsController < ModuleController
   end
 
   def confirm
-    cms_page_path ['E-marketing','Email Campaigns'], 'Confirm Campaign'
+    cms_page_path ['Mail','Email Campaigns'], 'Confirm Campaign'
     
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
@@ -853,7 +853,7 @@ class CampaignsController < ModuleController
   
   
   def status
-    cms_page_path ['E-marketing','Email Campaigns'], 'Campaign Status'
+    cms_page_path ['Mail','Email Campaigns'], 'Campaign Status'
   
     @campaign = MarketCampaign.find(params[:path][0])
     if @campaign.under_construction?
@@ -1001,7 +1001,7 @@ class CampaignsController < ModuleController
   end
 
   def self.mail_template_cms_path(controller)
-    [[ "E-marketing", ['Email Campaigns', controller.url_for(:controller => 'campaigns', :action => 'index')]], "Edit Mail Template"]
+    [[ "Mail", ['Email Campaigns', controller.url_for(:controller => 'campaigns', :action => 'index')]], "Edit Mail Template"]
   end
 
   def self.mail_template_save(mail_template, controller)
