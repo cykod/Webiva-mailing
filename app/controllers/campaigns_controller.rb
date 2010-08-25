@@ -74,8 +74,9 @@ class CampaignsController < ModuleController
       @queue= @campaign.market_campaign_queues.find_by_queue_hash(params[:queue_hash]) || raise(InvalidPageDataException.new("Invalid Mailing"))
     
       # Make sure we have a user 
-      @user = EndUser.find_visited_target(@queue.email)
-      
+      @user = EndUser.find_target @queue.email, :source => 'website'
+      @user.elevate_user_level 2
+
       if !@queue.opened?
 	      @queue.reload(:lock => true)
 	
@@ -103,7 +104,7 @@ class CampaignsController < ModuleController
     when 'subscription':
       mdl = UserSubscriptionEntry
     when 'user_segment':
-      mdl = UserSegment
+      mdl = EndUser
     else
       mdl = ContentModel.find(@campaign.data_model).content_model
     end
@@ -112,8 +113,6 @@ class CampaignsController < ModuleController
       entry = mdl.find(:first)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
-      elsif @campaign.data_model == 'user_segment'
-        entry = entry.find { |user| true }
       end
       
       vars = message.field_values(entry.attributes,'QUEUE')
@@ -123,8 +122,6 @@ class CampaignsController < ModuleController
       entry = mdl.find_by_id(@queue.model_id)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
-      elsif @campaign.data_model == 'user_segment'
-        entry = entry.find { |user| true }
       end
       
       vars = message.field_values(entry.attributes,@queue.queue_hash)
@@ -160,9 +157,9 @@ class CampaignsController < ModuleController
           @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash, :lock=>true) || raise(InvalidPageDataException.new(@real_msg))
           
           # Make sure we have a user 
-          @user = EndUser.find_visited_target(@queue.email)
-          
-          
+          @user = EndUser.find_target @queue.email, :source => 'website'
+          @user.elevate_user_level 2
+
           # Find or new a market link entry
           @link_entry = @market_link.market_link_entries.find_by_market_campaign_queue_id(@queue.id) || 
                         @market_link.market_link_entries.build(:first_clicked_at => Time.now,
