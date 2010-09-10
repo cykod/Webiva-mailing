@@ -1,26 +1,28 @@
 <div align='center'>
-<div style='width:450px; margin:0px; padding:10px 20px; background-color: #F79239; color:#FFFFFF; text-align:left;'>
+<div class="dashboard_widget" style='width:450px; margin:0px; padding:10px 20px; background-color: #F79239; color:#FFFFFF; text-align:left;'>
   <%= form_tag({}, {:id => 'verify_form', :onsubmit => 'CampaignConfirmation.submitVerifyForm(this); return false;'}) -%>
-  <h1><%= "Confirmation".t %></h1>
+  <h2 class="inform"><%= "Confirmation".t %></h2>
   <p><%= "You have clicked on the \"Send Campaign\" button, but before your send this campaign, we require that you indicate your mailing is being sent in compliance with the CAN-SPAM Act and any additional laws that may apply to sending commercial emails.".t %>
   </p>
+  <br/>
   <p><%= "Date and Time:".t %> <%= Time.now.localize(DEFAULT_DATETIME_FORMAT.t) %><br/>
      <%= "Your IP address:".t %> <%= request.remote_ip %>
   </p>
   <% if @not_checked %>
     <span class="error"><b><%= "You must confirm that your mailing is legal to continue".t %></b></span>
   <% end -%>
+  <br/>
   <p><label for='send_campaign_check'><input type='checkbox' id='send_campaign_check' name='send_campaign' value='1'/>
       <%= "Please check this box to indidate that your mailing complies with all applicable state and federal laws.".t %></label><br/><br/>
-      <a target='_blank' href='<%= "http://www.ftc.gov/bcp/edu/pubs/business/ecommerce/bus61.shtm".t %>'>
+      <a style="color:red;" target='_blank' href='<%= "http://www.ftc.gov/bcp/edu/pubs/business/ecommerce/bus61.shtm".t %>'>
         <%=  "CAN-SPAM: http://www.ftc.gov/bcp/edu/pubs/business/ecommerce/bus61.shtm ".t %>
       </a>
   </p>
+  <br/>
   <p align='center'>
       <input type='button' value='<%= "Cancel".t %>' onclick='CampaignConfirmation.closeOverlay();' />
       <input type='submit' value='<%= "Send Campaign!".t %>' onclick='this.disabled = true;' />
     </p>
   </form>  
-
 </div>
 </div>
