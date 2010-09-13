@@ -30,7 +30,7 @@ class Mailing::AdminController < ModuleController
   def self.navigation_mail_handler_info
     {:name => 'Mail Pages', 
      :pages => 
-        [ [ "Email Campaigns", :mailing_mailing, "emarketing_campaigns.gif", {  :controller => '/campaigns', :action => 'index' },
+        [ [ "Email Campaigns", :mailing_mailing, "mail_campaigns.png", {  :controller => '/campaigns', :action => 'index' },
          "Create and Review E-mail Marketing Campaigns" ]
         ]
     }
