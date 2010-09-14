@@ -75,7 +75,7 @@ class CampaignsController < ModuleController
     
       # Make sure we have a user 
       @user = EndUser.find_target @queue.email, :source => 'website'
-      @user.elevate_user_level 2
+      @user.elevate_user_level EndUser::UserLevel::VISITED
 
       if !@queue.opened?
 	      @queue.reload(:lock => true)
@@ -158,7 +158,7 @@ class CampaignsController < ModuleController
           
           # Make sure we have a user 
           @user = EndUser.find_target @queue.email, :source => 'website'
-          @user.elevate_user_level 2
+          @user.elevate_user_level EndUser::UserLevel::VISITED
 
           # Find or new a market link entry
           @link_entry = @market_link.market_link_entries.find_by_market_campaign_queue_id(@queue.id) || 
