@@ -161,6 +161,7 @@ class Mailing::SendGridSender < Mailing::Base
     totals = @options.service.get_all_time_totals self.category_name
     if totals && totals['bounces'].to_i > 0
       @options.service.get_bounces.each do |bounce|
+        next unless bounce['status'] =~ /^5/
         queue = @campaign.market_campaign_queues.find_by_email bounce['email']
         if queue
           queue.update_attribute :bounced, true

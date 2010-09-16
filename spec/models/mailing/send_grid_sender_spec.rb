@@ -99,7 +99,7 @@ describe Mailing::SendGridSender do
 
     fakeweb_send_grid_get_stats "name"=>"test.dev:Test", "blocks"=>"0", "spam_report"=>"0", "bounces"=>"1", "delivered"=>2, "unique_clicks"=>"0", "unsubscribes"=>"0", "clicks"=>"0", "requests"=>"3", "unique_opens"=>"0", "opens"=>"0"
 
-    fakeweb_send_grid_get_bounces [{'email' => 'test2@test.dev', 'reason' => 'host [127.0.0.1] said: 550 5.1.1 unknown or illegal user', "status" => "5.1.1", "created" => "2009-06-01 19:41:39"}]
+    fakeweb_send_grid_get_bounces [{'email' => 'test2@test.dev', 'reason' => 'host [127.0.0.1] said: 550 5.1.1 unknown or illegal user', "status" => "5.1.1", "created" => "2009-06-01 19:41:39"}, {'email' => 'test1@test.dev', 'reason' => 'host [127.0.0.1] said: 550 4.1.1 Busy', "status" => "4.1.1", "created" => "2009-06-01 19:41:39"}]
 
     fakeweb_send_grid_delete_bounce
 
