@@ -223,7 +223,8 @@ class MarketCampaign < DomainModel
         targets.each do |target|
 	        self.market_campaign_queues.create(
 	          :model_id => target[2],
-	          :email => target[0]
+	          :email => target[0],
+                  :queue_hash => create_hash(target[0])
 	        )
         end
         entry_total += targets.length

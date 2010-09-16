@@ -8,4 +8,10 @@ class Mailing::Base
   end
 
   def valid?; true; end
+
+  # required methods for senders
+  # def prepare_mail_template(mail_template, online); end
+  # def send!(mail_template, message, vars); end
+  # def send_sample!(email,mail_template,vars); end
+  # def options_description; end
 end
