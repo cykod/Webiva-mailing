@@ -140,7 +140,7 @@ class Mailing::SendGridSender < Mailing::Base
       self.smtp.send
 
       # update queue items as handled
-      MarketCampaignQueue.update_all "handled = 1", {:id =>  queues.collect(&:id)}
+      MarketCampaignQueue.update_all ["handled = 1, sent = 1, sent_at = ?", Time.now], {:id =>  queues.collect(&:id)}
 
       @campaign.reload(:lock => true)
       @campaign.stat_sent += sent_count
