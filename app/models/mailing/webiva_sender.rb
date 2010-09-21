@@ -98,10 +98,6 @@ class Mailing::WebivaSender < Mailing::Base
           skip_count += 1
         else
           
-          # Create the queue_hash	      
-          queue.queue_hash = create_hash(queue.email)
-          
-          
           entry = mdl.find_by_id(queue.model_id)
           if @campaign.data_model == 'subscription'
             entry = entry.end_user if entry.end_user_id
@@ -175,11 +171,5 @@ class Mailing::WebivaSender < Mailing::Base
       false
     end
   end
-  
-  def create_hash(str)
-    val = str + Time.now.to_s+(Process.pid + Process.pid + str.object_id).to_s
-    Digest::SHA1.hexdigest(val).upcase[-16..-1]
-  end
-  
 end
   
