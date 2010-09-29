@@ -639,6 +639,7 @@ class CampaignsController < ModuleController
       url = URI.parse(params[:href])
       raise "Invalid Href" unless url.is_a?(URI::HTTP) || url.is_a?(URI::HTTPS)
       Net::HTTP.start(url.host, url.port) do |http|
+        http.read_timeout = 4
 	http.request_head(url.path) do |response|
 	  case response
 	  when Net::HTTPSuccess
@@ -650,7 +651,7 @@ class CampaignsController < ModuleController
 	  end
 	end
       end
-    rescue
+    rescue Timeout::Error, Exception => e
       status = 404
     end
 
