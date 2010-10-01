@@ -23,7 +23,7 @@
   &lt;<%= f.text_field :reply_to_email, :unstyled => true, :size => 10 %>@<%= Configuration.domain %>&gt;
 </td></tr>
 
-<% if @campaign.sender_type == 'mailing/webiva_sender' -%>
+<% if @campaign.sender_type == 'mailing/webiva_sender' || @campaign.sender_type == 'mailing/send_grid_sender' -%>
 <tr class="vertical"><td style="padding:5px 0 5px 0;" colspan="2"><h4><%= "Choose Your Tracking Options".t %></h4></td></tr>
  <%= f.radio_buttons :tracking_image, [['Yes',true],['No',false]], :vertical => true, :label => 'Add a tracking image?', :description => '(Allows tracking of who opens and views the mailing)' %>
  <%= f.radio_buttons :track_links, [['Yes',true],['No',false]], :vertical => true, :label => 'Track all links?', :description => '(Allows tracking of which links are clicked on)' %>
