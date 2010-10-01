@@ -15,7 +15,8 @@ class Mailing::VerticalResponseSender < Mailing::Base
     
   def self.mailing_sender_handler_info
     { :name => 'Vertical Response Mailer',
-      :options_partial => '/mailing/senders/vr_options.rhtml'
+      :options_partial => '/mailing/senders/vr_options.rhtml',
+      :secure_options => %w(login access_pw)
     }
   end
   
@@ -45,7 +46,6 @@ class Mailing::VerticalResponseSender < Mailing::Base
 	end
       end
     end
-
   end
 
   def valid?

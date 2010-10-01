@@ -5,7 +5,8 @@ class Mailing::SendGridSender < Mailing::Base
 
   def self.mailing_sender_handler_info
     { :name => 'Send Grid Mailer',
-      :options_partial => '/mailing/senders/sendgrid_options'
+      :options_partial => '/mailing/senders/sendgrid_options',
+      :secure_options => %w(username password)
     }
   end
 

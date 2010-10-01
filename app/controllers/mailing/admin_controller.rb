@@ -60,9 +60,26 @@ class Mailing::AdminController < ModuleController
   def options
     cms_page_path ['Options','Modules'], 'Mailing Module Options'
     
-    @options = self.class.module_options(params[:options])
-    
+
     @handlers = get_handler_info(:mailing,:sender,nil,true)
+
+    # Update blank secure_options with existing values
+    if params[:options] && params[:options][:senders]
+      senders = params[:options][:senders]
+      @options = self.class.module_options
+      @handlers.each do |handler|
+        next unless handler[:secure_options]
+        sender = senders[handler[:identifier]]
+
+        handler[:secure_options].each do |fld|
+          if sender[fld].blank? && @options.senders[handler[:identifier]]
+            sender[fld] = @options.senders[handler[:identifier]][fld]
+          end
+        end
+      end
+    end
+
+    @options = self.class.module_options(params[:options])
     
     # Get each of the handler option models
     @handlers.each do |handler|
@@ -90,7 +107,14 @@ class Mailing::AdminController < ModuleController
         redirect_to :controller => '/modules'
         return
       end
-    end    
+    end
+
+    # Clear all secure options before displaying the form
+    @handlers.each do |handler|
+      if handler && handler[:options_partial] && handler[:secure_options]
+        handler[:secure_options].each { |fld| handler[:opts].send("#{fld}=", nil) }
+      end
+    end
 
     @senders = get_handler_options(:mailing,:sender,true)
   end
