@@ -158,7 +158,6 @@ class CampaignsController < ModuleController
           
           # Make sure we have a user 
           @user = EndUser.find_target @queue.email, :source => 'website'
-          @user.elevate_user_level EndUser::UserLevel::VISITED
 
           # Find or new a market link entry
           @link_entry = @market_link.market_link_entries.find_by_market_campaign_queue_id(@queue.id) || 
@@ -201,8 +200,9 @@ class CampaignsController < ModuleController
           @queue.save
           
           # Save the session id related to this campaign queue
-          unless @queue.market_campaign_queue_sessions.find_by_session_id(session.session_id)
-            @queue.market_campaign_queue_sessions.create(:session_id => session.session_id, :entry_created_at => Time.now)
+          unless @queue.market_campaign_queue_sessions.find_by_session_id(request.session_options[:id])
+            session[:visiting_end_user_id] = @user.id if @user
+            @queue.market_campaign_queue_sessions.create(:session_id => request.session_options[:id], :entry_created_at => Time.now)
           end
         end
         
