@@ -184,14 +184,26 @@ class Mailing::SendGridSender < Mailing::Base
   end
 
   def send_sample!(email,mail_template,vars)
-    self.smtp.html = mail_template.is_html ? mail_template.render_html(vars) : nil
-    self.smtp.text = mail_template.is_text ? mail_template.render_text(vars) : nil
-    self.smtp.subject = mail_template.render_subject(vars)
+    send_grid_vars = {}
+
+    vars.each do |fld_orig,val|
+      fld = fld_orig.downcase
+      send_grid_vars[fld_orig] = "-#{fld}-"
+    end
+
+    self.smtp.html = mail_template.is_html ? mail_template.render_html(send_grid_vars) : nil
+    self.smtp.text = mail_template.is_text ? mail_template.render_text(send_grid_vars) : nil
+    self.smtp.subject = mail_template.render_subject(send_grid_vars)
     self.smtp.category_name = self.category_name
     self.smtp.from = vars['system:from']
     self.smtp.reply_to = vars['system:reply_to']
     self.smtp.receivers = [email]
+
     self.smtp.data = {}
+    vars.each do |fld_orig,val|
+      self.smtp.data[send_grid_vars[fld_orig]] = [val]
+    end
+
     self.smtp.send
     true
   end
