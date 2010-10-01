@@ -103,7 +103,7 @@ class CampaignsController < ModuleController
     when 'subscription':
       mdl = UserSubscriptionEntry
     when 'user_segment':
-      mdl = UserSegment
+      mdl = EndUser 
     else
       mdl = ContentModel.find(@campaign.data_model).content_model
     end
@@ -112,8 +112,6 @@ class CampaignsController < ModuleController
       entry = mdl.find(:first)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
-      elsif @campaign.data_model == 'user_segment'
-        entry = entry.find { |user| true }
       end
       
       vars = message.field_values(entry.attributes,'QUEUE')
@@ -123,8 +121,6 @@ class CampaignsController < ModuleController
       entry = mdl.find_by_id(@queue.model_id)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
-      elsif @campaign.data_model == 'user_segment'
-        entry = entry.find { |user| true }
       end
       
       vars = message.field_values(entry.attributes,@queue.queue_hash)
