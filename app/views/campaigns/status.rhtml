@@ -30,6 +30,7 @@ CampaignViewer = {
   <%= p.link "Download Opened Detail", :action=>'details',:download => 1,:detail_type => 'opened',:path => [ @campaign.id ], :icon => 'download.gif' %>
   <%= p.link "Download Link Details", :action=>'details',:download => 1,:detail_type => 'clicked',:path => [ @campaign.id ], :icon => 'download.gif' %>
   <%= p.link "Download Unsubscription Detail", :action=>'details',:download => 1,:detail_type => 'unsubscribed',:path => [ @campaign.id ], :icon => 'download.gif' %>
+  <%= p.link "Bounce Manager", :action=>'bounces',:path => [ @campaign.id ], :icon => 'view.png' %>
 <% end -%>
 <hr/>
 <div class='admin_content'>
