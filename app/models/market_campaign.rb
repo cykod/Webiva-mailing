@@ -204,7 +204,20 @@ class MarketCampaign < DomainModel
     
     variables
   end
-  
+
+  def unsubscribe_bounces(opts={})
+    self.market_campaign_queues.find(:all, :conditions => 'bounced = 1').each do |queue|
+      UserUnsubscription.create :email => queue.email, :unsubscription_type => 'bounce', :reason => 'email bounced', :unsubscribed_at => Time.now
+    end
+  end
+
+  def delete_bounce_users(opts={})
+    self.market_campaign_queues.find(:all, :conditions => 'bounced = 1').each do |queue|
+      user = queue.end_user
+      user.destroy if user
+    end
+  end
+
   private
   
   # Initialize a campaign to start sending

@@ -913,7 +913,43 @@ class CampaignsController < ModuleController
       render :partial => 'details'
     end
   end
-  
+
+  class MarketCampaignBounceManager < HashModel
+    attr_accessor :campaign
+
+    attributes :action => 'unsubscribe'
+
+    validates_presence_of :action
+
+    @@action_options = [['Unsubscribe all bounced users', 'unsubscribe'], ['Delete all bounced users', 'delete']]
+    def self.action_options
+      @@action_options
+    end
+
+    def handle
+      case self.action
+      when 'unsubscribe'
+        self.campaign.run_worker(:unsubscribe_bounces)
+      when 'delete'
+        self.campaign.run_worker(:delete_bounce_users)
+      end
+    end
+  end
+
+  def bounces
+    @campaign = MarketCampaign.find(params[:path][0])
+    cms_page_path ['Mail','Email Campaigns', ['Campaign Status', url_for(:action => 'status', :path => @campaign.id)]], 'Bounce Management'
+
+    @bounce_manager = MarketCampaignBounceManager.new params[:bounce]
+    @bounce_manager.campaign = @campaign
+
+    if request.post? && params[:bounce]
+      @bounce_manager.handle
+      flash[:notice] = @bounce_manager.action == 'unsubscribe' ? 'Unsubscribing bounced users'.t : 'Deleting bounced users'.t
+      redirect_to :action => 'status', :path => @campaign.id
+    end
+  end
+
   private
   
   def campaign_action(campaign_ids,flash_text,&block)
