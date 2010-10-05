@@ -104,7 +104,7 @@ class CampaignsController < ModuleController
     when 'subscription':
       mdl = UserSubscriptionEntry
     when 'user_segment':
-      mdl = EndUser
+      mdl = EndUser 
     else
       mdl = ContentModel.find(@campaign.data_model).content_model
     end
@@ -238,7 +238,7 @@ class CampaignsController < ModuleController
       @campaign.save
       @queue.save
 
-      send_file @campaign.tracking_image_filename, :disposition => 'inline'
+      send_file "#{RAILS_ROOT}/public/images/spacer.gif", :disposition => 'inline', :type => 'image/gif'
     end
     rescue InvalidPageDataException => e
      render :nothing => true 
