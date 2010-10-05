@@ -237,7 +237,7 @@ class CampaignsController < ModuleController
       @campaign.save
       @queue.save
 
-      send_file @campaign.tracking_image_filename, :disposition => 'inline'
+      send_file "#{RAILS_ROOT}/public/images/spacer.gif", :disposition => 'inline', :type => 'image/gif'
     end
     rescue InvalidPageDataException => e
      render :nothing => true 
