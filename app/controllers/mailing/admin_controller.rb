@@ -22,6 +22,8 @@ class Mailing::AdminController < ModuleController
   
   register_handler :mail_template, :edit, 'CampaignsController'
 
+  register_handler :user_segment, :fields, 'MarketCampaignQueueSegmentField'
+
   cms_admin_paths "options",
                   'Content' => { :controller => '/content' },
                   'Options' =>   { :controller => '/options' },
