@@ -59,12 +59,7 @@ class MarketCampaignQueueSegmentField < UserSegment::FieldHandler
   end
 
   def self.get_handler_data(ids, fields)
-    MarketCampaignQueue.find(:all, :conditions => {:model_id => ids}, :include => :market_campaign).collect do |queue|
-      MarketCampaignQueueSegmentField.email_states do |state|
-        queue.send("#{state}=", nil) if queue.send(state).blank?
-      end
-      queue
-    end.group_by(&:model_id)
+    MarketCampaignQueue.find(:all, :conditions => {:model_id => ids}, :include => :market_campaign).group_by(&:model_id)
   end
 
   def self.field_output(user, handler_data, field)
