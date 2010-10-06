@@ -11,4 +11,8 @@ class MarketCampaignQueue < DomainModel
       EndUser.find_by_id self.model_id
     end
   end
+
+  def market_campaign_name
+    self.market_campaign.name
+  end
 end

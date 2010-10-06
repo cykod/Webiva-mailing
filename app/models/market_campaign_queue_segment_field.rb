@@ -9,38 +9,40 @@ class MarketCampaignQueueSegmentField < UserSegment::FieldHandler
     }
   end
 
+  @@email_states = %w(sent bounced unsubscribed abuse opened skip)
+  def self.email_states; @@email_states; end
+  def self.email_states_options; self.email_states.collect{|s| [s.titleize, s]}; end
+
   class MarketCampaignType < UserSegment::FieldType
     def self.select_options
       MarketCampaign.find(:all, :select => 'name, id', :conditions => {:status => 'completed'}).collect { |c| [c.name, c.id] }.sort { |a,b| a[0] <=> b[0] }
     end
 
-    register_operation :is, [['Campaign', :model, {:class => MarketCampaignQueueSegmentField::MarketCampaignType}], ['Status', :option, {:options =>[['Sent', 'sent'], ['Opened', 'opened']]}]]
+    register_operation :is, [['Campaign', :model, {:class => MarketCampaignQueueSegmentField::MarketCampaignType}], ['Status', :option, {:options => MarketCampaignQueueSegmentField.email_states_options}]]
 
     def self.is(cls, group_field, field, id, status)
-      case status
-      when 'sent'
-        cls.scoped(:conditions => ["#{field} = ? and sent = 1", id])
-      when 'opened'
-        cls.scoped(:conditions => ["#{field} = ? and opened = 1", id])
+      if MarketCampaignQueueSegmentField.email_states.include?(status)
+        cls.scoped(:conditions => ["#{field} = ? and #{status} = 1", id])
+      else
+        cls.scoped(:conditions => ["#{field} = ?", id])
       end
     end
   end
 
-  register_field :emails_sent, UserSegment::CoreType::CountType, :field => :model_id, :name => '# Emails Sent', :display_method => 'count', :sort_method => 'count', :sortable => true, :scope => {:conditions => {:sent => true}}
-  register_field :emails_opened, UserSegment::CoreType::CountType, :field => :model_id, :name => '# Emails Opened', :display_method => 'count', :sort_method => 'count', :sortable => true, :scope => {:conditions => {:opened => true}}
-  register_field :emails_bounced, UserSegment::CoreType::CountType, :field => :model_id, :name => '# Emails Bounced', :display_method => 'count', :sort_method => 'count', :sortable => true, :scope => {:conditions => {:bounced => true}}
-  register_field :emails_abuse, UserSegment::CoreType::CountType, :field => :model_id, :name => '# Emails Abuse', :display_method => 'count', :sort_method => 'count', :sortable => true, :scope => {:conditions => {:abuse => true}}
-  register_field :emails_skip, UserSegment::CoreType::CountType, :field => :model_id, :name => '# Emails Skip', :display_method => 'count', :sort_method => 'count', :sortable => true, :scope => {:conditions => {:skip => true}}
-  register_field :emails_unsubscribed, UserSegment::CoreType::CountType, :field => :model_id, :name => '# Emails Unsubscribed', :display_method => 'count', :sort_method => 'count', :sortable => true, :scope => {:conditions => {:unsubscribed => true}}
+  @@email_states.each do |state|
+    register_field "emails_#{state}".to_sym, UserSegment::CoreType::CountType, :field => :model_id, :name => "# Emails #{state}".titleize, :display_method => :count_valid_states, :sort_method => 'sum', :sortable => true, :scope => {:conditions => {state.to_sym => true}}, :display_field => state.to_sym
+  end
 
-  register_field :campaign, MarketCampaignType, :field => :market_campaign_id, :name => 'Campaign'
+  register_field :campaign, MarketCampaignType, :field => :market_campaign_id, :name => 'Campaign', :display_field => :market_campaign_name
+  register_field :email_sent_at, UserSegment::CoreType::DateTimeType, :field => :sent_at, :name => 'Email Sent At', :display_method => 'max'
+  register_field :email_opened_at, UserSegment::CoreType::DateTimeType, :field => :opened_at, :name => 'Email Opened At', :display_method => 'max'
 
   def self.sort_scope(order_by, direction)
      info = UserSegment::FieldHandler.sortable_fields[order_by.to_sym]
 
-    if order_by.to_sym == :emails_sent
+    if info[:type] == UserSegment::CoreType::CountType
       sort_method = info[:sort_method]
-      field = info[:field]
+      field = info[:display_field]
       MarketCampaignQueue.scoped(:select => "model_id, #{sort_method}(#{field}) as #{field}_#{sort_method}", :group => :model_id, :order => "#{field}_#{sort_method} #{direction}")
     else
       field = self.user_segment_fields[order_by.to_sym][:field]
@@ -52,8 +54,17 @@ class MarketCampaignQueueSegmentField < UserSegment::FieldHandler
     self.user_segment_fields[field][:name]
   end
 
+  def self.count_valid_states(values)
+    values.delete_if{ |v| v == false }.size
+  end
+
   def self.get_handler_data(ids, fields)
-    MarketCampaignQueue.find(:all, :conditions => {:model_id => ids}).group_by(&:model_id)
+    MarketCampaignQueue.find(:all, :conditions => {:model_id => ids}, :include => :market_campaign).collect do |queue|
+      MarketCampaignQueueSegmentField.email_states do |state|
+        queue.send("#{state}=", nil) if queue.send(state).blank?
+      end
+      queue
+    end.group_by(&:model_id)
   end
 
   def self.field_output(user, handler_data, field)
