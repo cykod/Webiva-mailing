@@ -11,7 +11,8 @@
                       {
                         parameters: { email: $('sample_email').value },
                         onSuccess: function(req) {
-                          $('sent_sample').innerHTML = '<%= jh "Sent Sample to:".t %>' + $('sample_email').value;
+                          var html = req.responseText == ' ' ? '<%= jh "Sent Sample to:".t %>' + $('sample_email').value : "<span style='color:red;'>" + req.responseText + "</span>";
+                          $('sent_sample').innerHTML = html;
                           $('sent_sample').show();
                           $('sample_email').value = '';
                           $('send_butt').disabled = false;

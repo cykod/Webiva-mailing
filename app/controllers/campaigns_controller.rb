@@ -828,8 +828,12 @@ class CampaignsController < ModuleController
     generate_sample
     
     sender = @campaign.sender_class
-    sender.send_sample!(params[:email],@mail_template,@preview_vars)
-    
+    begin
+      sender.send_sample!(params[:email],@mail_template,@preview_vars)
+    rescue Net::SMTPSyntaxError => e
+      return render :inline => e.to_s
+    end
+
     render :nothing => true
   end
   
