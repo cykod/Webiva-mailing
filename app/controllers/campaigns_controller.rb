@@ -633,7 +633,9 @@ class CampaignsController < ModuleController
     status = 200
 
     begin
-      url = URI.parse(params[:href])
+      href = params[:href]
+      href = Configuration.domain_link(href) unless href =~ /^https?:/
+      url = URI.parse(href)
       raise "Invalid Href" unless url.is_a?(URI::HTTP) || url.is_a?(URI::HTTPS)
       Net::HTTP.start(url.host, url.port) do |http|
         http.read_timeout = 4
