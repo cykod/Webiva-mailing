@@ -3,10 +3,8 @@ campaign_id ||= @campaign.id
 campaign_step ||= @campaign_step
 campaign_max_step ||= @campaign_max_step
 -%>
-<div class='camp_steps_box'>
-<div align='left' style="padding-bottom:15px;">
-<h4><%= "Create Your E-mailing Campaign".t %></h4>
-</div>
+<hr/>
+<div class='wizard_steps_box'>
 <table>
 <tr>
 <% wizard_steps campaign_step, campaign_max_step, :tag => 'td', :class => 'selected' do |steps| %>
@@ -19,4 +17,3 @@ campaign_max_step ||= @campaign_max_step
 </tr>
 </table>
 </div>
-<br/>

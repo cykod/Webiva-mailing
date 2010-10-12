@@ -5,7 +5,8 @@ class Mailing::SendGridSender < Mailing::Base
 
   def self.mailing_sender_handler_info
     { :name => 'Send Grid Mailer',
-      :options_partial => '/mailing/senders/sendgrid_options'
+      :options_partial => '/mailing/senders/sendgrid_options',
+      :secure_options => %w(username password)
     }
   end
 
@@ -141,7 +142,14 @@ class Mailing::SendGridSender < Mailing::Base
         end
       end
 
-      self.smtp.send
+      begin
+        self.smtp.send
+      rescue Net::SMTPSyntaxError => e
+        @campaign.status = 'error'
+        @campaign.error_message = e.to_s
+        @campaign.save
+        return
+      end
 
       # update queue items as handled
       MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => sent_ids}) unless sent_ids.empty?

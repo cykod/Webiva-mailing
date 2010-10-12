@@ -1,0 +1,11 @@
+<div class="admin_content">
+
+<h2><%= @campaign.name %> <%= "Campaign" .t %></h2>
+
+<% admin_form_for :bounce, @bounce_manager do |f| -%>
+  <%= f.radio_buttons :action, @bounce_manager.class.action_options, :separator => '<br/>', :label => '' %>
+  <%= f.spacer %>
+  <%= f.submit_tag 'Submit' %>
+<% end -%>
+
+</div>

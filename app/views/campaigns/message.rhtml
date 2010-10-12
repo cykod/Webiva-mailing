@@ -83,11 +83,8 @@
 </script>
 
 <%= render :partial => 'campaign_steps' %>
-<hr/>
 
-<div class='admin_content admin_form'>
-
-<h1 class="lightblue" style="padding-bottom:15px;"><%= 'Message'.t %></h1>
+<h2 class="inform"><%= 'Message'.t %></h2>
 
 <%= form_tag('',:id => 'campaign_template_form') -%>
 <input type='hidden' name='edit' id='edit_template' value='0'/>
@@ -140,9 +137,7 @@
 </form>
 
 <div id="buttons" style="padding:15px 0 30px 0; <%= "display:none;" unless @campaign.mail_template %>">
-<a class="submit_button" href="<%= url_for :action => 'campaign', :path => @campaign.id %>"><%= '<< Previous'.t %></a>
+<a class="button_link" href="<%= url_for :action => 'campaign', :path => @campaign.id %>"><%= '<< Previous'.t %></a>
 &nbsp;
-<a class="submit_button" href="javascript:void(0);" onclick="$('campaign_template_form').submit(); return false;"><%= 'Next >>'.t %></a>
-</div>
-
+<a class="button_link" href="javascript:void(0);" onclick="$('campaign_template_form').submit(); return false;"><%= 'Next >>'.t %></a>
 </div>

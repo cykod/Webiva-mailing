@@ -32,6 +32,7 @@ describe CampaignsController do
 
   def fake_net_http(response)
     @http = mock
+    @http.should_receive(:read_timeout=).any_number_of_times
     @http.should_receive(:request_head).and_yield(response)
     Net::HTTP.should_receive(:start).and_yield(@http)
   end
