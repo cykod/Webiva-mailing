@@ -1,7 +1,7 @@
 
 class Mailing::WebivaSender < Mailing::Base
   
-  SENDING_WINDOW_SIZE = 1
+  SENDING_WINDOW_SIZE = 250
   
   def self.mailing_sender_handler_info
     { :name => 'Webiva Mailer'
