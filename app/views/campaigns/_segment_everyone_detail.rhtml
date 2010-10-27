@@ -1,0 +1,19 @@
+<table width="100%" cellspacing="0" cellpadding="0">
+<tr>
+  <td colspan='2' class="title">
+  <%= market_segment.name %>
+  </td>
+</tr>
+<tr>
+  <td class="label"><%= "Created:".t %></td>
+  <td class="field"><%= market_segment.created_at.localize(DEFAULT_DATETIME_FORMAT.t) %></td>
+</tr>
+<tr>
+  <td class="label"><%= "Last Sent:".t %></td>
+  <td class="field"><%= market_segment.last_sent_at ? market_segment.last_sent_at.localize(DEFAULT_DATETIME_FORMAT.t) : "Never Sent".t %></td>
+</tr>
+<tr>
+  <td class="label"><%= "Members:".t %></td>
+  <td class="field"><%= sprintf("%d Members".t,market_segment.target_count) %></td>
+ </tr>
+</table>

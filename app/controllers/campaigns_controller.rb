@@ -401,6 +401,8 @@ class CampaignsController < ModuleController
   end
 
   def campaign
+    @everyone = MarketSegment.push_everyone_segment
+
     opts = Mailing::AdminController.module_options(params[:options])
 
     if params[:path] && params[:path][0]
@@ -480,7 +482,9 @@ class CampaignsController < ModuleController
   end
 
   def segments(display=true)
-    @segment = MarketSegment.new(:segment_type => 'subscription')
+    @everyone ||= MarketSegment.push_everyone_segment
+
+    @segment = MarketSegment.new(:segment_type => 'everyone')
 
     if display
       if params[:path] && params[:path][0]
@@ -497,7 +501,7 @@ class CampaignsController < ModuleController
 
     @segments = MarketSegment.for_campaign(@campaign).with_segment_type(@segment.segment_type).order_by_name.find(:all)
 
-    @segment_types = [['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
+    @segment_types = [['Everyone', 'everyone'], ['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
 
     render :partial => 'segments' if display
   end

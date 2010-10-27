@@ -21,12 +21,7 @@ SegmentList.refreshSegment(<%= market_segment.id %>);
 <table width="100%" cellspacing="0" cellpadding="0">
 <tr>
   <td colspan='2' class="title">
-  <% if @refreshing -%>
-    <%= "Refreshing %s User List" / @segment.name %>
-    <p><%= "Please wait while user list is updated." %></p>
-  <% else -%>
-    <%= market_segment.name %>
-  <% end -%>
+  <%= market_segment.name %>
   </td>
 </tr>
 <tr>
