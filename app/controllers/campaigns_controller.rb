@@ -484,7 +484,7 @@ class CampaignsController < ModuleController
   def segments(display=true)
     @everyone ||= MarketSegment.push_everyone_segment
 
-    @segment = MarketSegment.new(:segment_type => 'everyone')
+    @segment = MarketSegment.new(:segment_type => 'subscription')
 
     if display
       if params[:path] && params[:path][0]
@@ -497,11 +497,16 @@ class CampaignsController < ModuleController
       @campaign.market_segment_id = params[:market_segment_id] if params[:market_segment_id]
     elsif @campaign.market_segment
       @segment.segment_type = @campaign.market_segment.segment_type
+      @segment.segment_type = @segment.segment_type == 'everyone' ? 'user_segment' : @segment.segment_type
     end
 
     @segments = MarketSegment.for_campaign(@campaign).with_segment_type(@segment.segment_type).order_by_name.find(:all)
 
-    @segment_types = [['Everyone', 'everyone'], ['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
+    if @segment.segment_type == 'user_segment'
+      @segments = [@everyone] + @segments
+    end
+
+    @segment_types = [['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
 
     render :partial => 'segments' if display
   end
