@@ -552,6 +552,12 @@ class CampaignsController < ModuleController
   
   def segment_info 
     @segment = MarketSegment.find(params[:segment_id])
+
+    if @segment.user_segment && @segment.user_segment.segment_type == 'filtered' && @segment.user_segment.last_ran_at < 1.day.ago
+      @segment.user_segment.refresh
+      @refreshing = ! @segment.user_segment.ready?
+    end
+
     render :action => 'segment_info'
   end
   
