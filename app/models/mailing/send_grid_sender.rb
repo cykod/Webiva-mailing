@@ -116,8 +116,9 @@ class Mailing::SendGridSender < Mailing::Base
       self.smtp.data = {}
       send_grid_vars.each { |fld_orig, fld| self.smtp.data[fld] = [] }
 
-      sent_ids = []
       skipped_ids = []
+      sent_ids = queues.collect(&:id)
+      MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => sent_ids}) unless sent_ids.empty?
       queues.each do |queue|
         skip_target = skip_targets[queue.email] ? true : false
         skip_target ||= RFC822::EmailAddress.match(queue.email).nil?
@@ -138,22 +139,22 @@ class Mailing::SendGridSender < Mailing::Base
           self.smtp.receivers << queue.email
           send_grid_vars.each { |fld_orig, fld| self.smtp.data[fld] << vars[fld_orig] }
           sent_count += 1
-          sent_ids << queue.id
         end
       end
 
       begin
         self.smtp.send
       rescue Net::SMTPSyntaxError => e
+        @campaign.reload(:lock => true)
         @campaign.status = 'error'
         @campaign.error_message = e.to_s
         @campaign.save
+        MarketCampaignQueue.update_all("handled = 0, sent = 0, sent_at = NULL", {:id => sent_ids}) unless sent_ids.empty?
         return
       end
 
       # update queue items as handled
-      MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => sent_ids}) unless sent_ids.empty?
-      MarketCampaignQueue.update_all("handled = 1, skip = 1", {:id => skipped_ids}) unless skipped_ids.empty?
+      MarketCampaignQueue.update_all("skip = 1, sent = 0, sent_at = NULL", {:id => skipped_ids}) unless skipped_ids.empty?
 
       @campaign.reload(:lock => true)
       @campaign.stat_sent += sent_count
