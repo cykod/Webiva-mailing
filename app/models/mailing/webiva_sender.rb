@@ -109,10 +109,11 @@ class Mailing::WebivaSender < Mailing::Base
           @campaign.add_delivery_variables(vars)
           
 	  begin
-	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
-	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
 	    queue.sent_at = Time.now
 	    queue.sent = true
+            queue.save
+	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
+	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
 	    sent_count += 1
 	  rescue SMTPError => e
 	    queue.error = true
@@ -129,8 +130,11 @@ class Mailing::WebivaSender < Mailing::Base
 	    logger.error("Failed to send mail to #{queue.email} because '#{e}'")
 	  end
         end
-        
-        queue.save
+
+        if queue.error
+          queue.sent = false
+          queue.save
+        end
 
         unless @campaign.status == 'active'
 	  logger.warn("Stopping, campaign status changed to #{@campaign.status}")
