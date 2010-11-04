@@ -93,7 +93,8 @@ class MarketCampaign < DomainModel
     self.status = 'sending'
     self.error_message = nil
     self.save
-    parameters = (parameters || {})[:resending] = true
+    parameters ||= {}
+    parameters[:resending] = true
     self.run_campaign(parameters)
     true
   end
