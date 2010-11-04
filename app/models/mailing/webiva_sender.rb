@@ -96,6 +96,8 @@ class Mailing::WebivaSender < Mailing::Base
 
         if skip_target
           skip_count += 1
+          queue.skip = true
+          queue.save
         else
           
           entry = mdl.find_by_id(queue.model_id)

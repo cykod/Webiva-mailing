@@ -65,4 +65,57 @@ describe Mailing::WebivaSender do
     vars = {}
     @sender.send_sample!('test@test.dev',mail_template,vars)
   end
+
+  it "should skip invalid emails" do
+    @user3 = EndUser.create :username => 'testuser3', :admin_edit => true
+    @user3.id.should_not be_nil
+
+    @user_segment = UserSegment.create(:name => 'test invalid email', :segment_type => 'custom')
+    @user_segment.add_ids [@user1.id, @user2.id, @user3.id]
+    @user_segment.market_segment.market_campaign_id = @campaign.id
+    @user_segment.market_segment.save
+    @campaign.update_attribute(:market_segment_id, @user_segment.market_segment_id)
+
+    assert_difference 'MarketCampaignQueue.count', 3 do
+      @campaign.send(:initialize_campaign)
+    end
+
+    @campaign.status = 'active'
+    @campaign.save
+
+    @queue1 = MarketCampaignQueue.find_by_email_and_market_campaign_id(@user1.email, @campaign.id)
+    @queue1.should_not be_nil
+    @queue1.market_campaign_id.should == @campaign.id
+    @queue1.model_id.should == @user1.id
+    @queue1.sent.should be_false
+    @queue1.handled.should be_false
+
+    @queue2 = MarketCampaignQueue.find_by_email_and_market_campaign_id(@user2.email, @campaign.id)
+    @queue2.should_not be_nil
+
+    @queue3 = MarketCampaignQueue.find_by_email_and_market_campaign_id(@user3.email, @campaign.id)
+    @queue3.should_not be_nil
+
+    @sender = @campaign.sender_class
+    mail_template, tracking_variables = @sender.prepare_mail_template(@campaign.get_mail_template, false)
+    message = @campaign.market_campaign_message
+    @sender.send!(mail_template,message,tracking_variables)
+
+    @queue1.reload
+    @queue1.handled.should be_true
+    @queue1.sent.should be_true
+
+    @queue2.reload
+    @queue2.handled.should be_true
+    @queue2.sent.should be_true
+
+    @queue3.reload
+    @queue3.handled.should be_true
+    @queue3.sent.should be_false
+    @queue3.skip.should be_true
+
+    @campaign.reload
+    @campaign.stat_sent.should == 2
+    @campaign.stat_skipped.should == 1
+  end
 end
