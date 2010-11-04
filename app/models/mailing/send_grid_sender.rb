@@ -91,15 +91,7 @@ class Mailing::SendGridSender < Mailing::Base
     self.smtp.from = email_vars['system:from']
     self.smtp.reply_to = email_vars['system:reply_to']
 
-    mdl = nil
-    case @campaign.data_model
-    when 'subscription'
-      mdl = UserSubscriptionEntry
-    when 'user_segment'
-      mdl = EndUser
-    else
-      mdl = ContentModel.find(@campaign.data_model).content_model
-    end
+    mdl = @campaign.data_model_class
 
     @campaign.market_campaign_queues.find_in_batches(:conditions => 'handled=0', :batch_size => SENDING_WINDOW_SIZE) do |queues|
       @campaign.reload

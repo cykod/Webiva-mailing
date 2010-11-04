@@ -77,15 +77,7 @@ class Mailing::WebivaSender < Mailing::Base
       
       skip_count = 0
       sent_count = 0
-      
-      case @campaign.data_model
-      when 'subscription':
-          mdl = UserSubscriptionEntry
-      when 'user_segment':
-          mdl = EndUser
-      else
-        mdl = ContentModel.find(@campaign.data_model).content_model
-      end
+      mdl = @campaign.data_model_class
 
       queues.each do |queue|
 	

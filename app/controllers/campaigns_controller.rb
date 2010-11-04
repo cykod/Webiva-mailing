@@ -99,25 +99,16 @@ class CampaignsController < ModuleController
     mail_template, tracking_variables = @campaign.prepare_mail_template(true)
     
     message = @campaign.market_campaign_message
-    
-    case @campaign.data_model
-    when 'subscription':
-      mdl = UserSubscriptionEntry
-    when 'user_segment':
-      mdl = EndUser 
-    else
-      mdl = ContentModel.find(@campaign.data_model).content_model
-    end
+    mdl = @campaign.data_model_class
     
     if @under_construction
       entry = mdl.find(:first)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
       end
-      
+
       vars = message.field_values(entry.attributes,'QUEUE')
       vars.merge!(@campaign.add_tracking_links(tracking_variables,'QUEUE'))
-        
     else
       entry = mdl.find_by_id(@queue.model_id)
       if @campaign.data_model == 'subscription'
@@ -436,14 +427,6 @@ class CampaignsController < ModuleController
       @campaign.sender_class.valid?
 
       if @campaign.market_segment
-	if @campaign.market_segment.segment_type == 'subscription'
-	  @campaign.data_model = 'subscription'
-	elsif @campaign.market_segment.segment_type == 'user_segment'
-	  @campaign.data_model = 'user_segment'
-	else
-	  market_segment = MarketSegment.find(@campaign.market_segment_id)
-	  @campaign.data_model = market_segment.options[:content_model_id]
-	end
 	@campaign.errors.add(:market_segment_id, 'Target has no members') if @campaign.market_segment.target_count == 0
       else
 	@campaign.errors.add(:market_segment_id, 'Target is missing') if @campaign.name
