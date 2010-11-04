@@ -481,6 +481,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
 
         if skip_target
           skip_count += 1
+          queue.skip = true
         else
           entry = mdl.find_by_id(queue.model_id)
           if @campaign.data_model == 'subscription'
