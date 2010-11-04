@@ -109,8 +109,7 @@ class Mailing::SendGridSender < Mailing::Base
       send_grid_vars.each { |fld_orig, fld| self.smtp.data[fld] = [] }
 
       skipped_ids = []
-      sent_ids = queues.collect(&:id)
-      MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => sent_ids}) unless sent_ids.empty?
+      self.mark_as_sent queues.collect(&:id)
       queues.each do |queue|
         skip_target = skip_targets[queue.email] ? true : false
         skip_target ||= RFC822::EmailAddress.match(queue.email).nil?
@@ -141,12 +140,12 @@ class Mailing::SendGridSender < Mailing::Base
         @campaign.status = 'error'
         @campaign.error_message = e.to_s
         @campaign.save
-        MarketCampaignQueue.update_all("handled = 0, sent = 0, sent_at = NULL", {:id => sent_ids}) unless sent_ids.empty?
+        self.mark_as_unhandled queues.collect(&:id)
         return
       end
 
       # update queue items as handled
-      MarketCampaignQueue.update_all("skip = 1, sent = 0, sent_at = NULL", {:id => skipped_ids}) unless skipped_ids.empty?
+      self.mark_as_skipped skipped_ids
 
       @campaign.reload(:lock => true)
       @campaign.stat_sent += sent_count
@@ -162,7 +161,28 @@ class Mailing::SendGridSender < Mailing::Base
       @campaign.save
     end
   end          
-  
+
+  def mark_as_skipped(ids)
+    return if ids.empty?
+    MarketCampaignQueue.send(:with_exclusive_scope) do
+      MarketCampaignQueue.update_all("handled = 1, skip = 1, sent = 0, sent_at = NULL", {:id => ids})
+    end
+  end
+
+  def mark_as_sent(ids)
+    return if ids.empty?
+    MarketCampaignQueue.send(:with_exclusive_scope) do
+      MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => ids})
+    end
+  end
+
+  def mark_as_unhandled(ids)
+    return if ids.empty?
+    MarketCampaignQueue.send(:with_exclusive_scope) do
+      MarketCampaignQueue.update_all("handled = 0, sent = 0, sent_at = NULL", {:id => ids})
+    end
+  end
+
   def update_stats
     totals = @options.service.get_all_time_totals self.category_name
     if totals && totals['bounces'].to_i > 0
