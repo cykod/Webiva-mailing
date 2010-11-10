@@ -195,6 +195,8 @@ class CampaignsController < ModuleController
             session[:visiting_end_user_id] = @user.id if @user
             @queue.market_campaign_queue_sessions.create(:session_id => request.session_options[:id], :entry_created_at => Time.now)
           end
+
+          session[:from_email_campaign] = true
         end
         
         # redirect to the linked page
