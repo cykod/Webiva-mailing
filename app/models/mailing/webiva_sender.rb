@@ -109,7 +109,7 @@ class Mailing::WebivaSender < Mailing::Base
 	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
 	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
 	    sent_count += 1
-	  rescue SMTPError => e
+	  rescue Net::SMTPError => e
 	    queue.error = true
 	    queue.handled = false
 	    @campaign.status = 'error'

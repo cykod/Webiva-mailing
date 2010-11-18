@@ -48,7 +48,7 @@ class Mailing::MailRenderer < ParagraphRenderer
 	  end
 
           @user = EndUser.push_target @queue.email, :source => 'website', :no_register => true
-          @user.unsubscribe
+          @user.unsubscribe if @user
 	end
 
 	@unsubscribed = true
