@@ -14,7 +14,7 @@
 </tr>
 <tr>
   <td><%= "Members:".t %></td>
-  <td><a href='javascript:void(0);' onclick="openWindow('<%= url_for :action => 'segment_view_list', :path => market_segment.id %>','SegmentList',400,400,'no','no');">
+  <td><a href='javascript:void(0);' onclick="openWindow('<%= url_for :action => 'segment_view_list', :path => market_segment.id %>','SegmentList',400,400,'no','yes');">
       <%= sprintf("%d Members".t,market_segment.target_count)  %>
       </a>
   </td>

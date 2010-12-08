@@ -46,10 +46,14 @@ class Mailing::MailRenderer < ParagraphRenderer
 	    @campaign.stat_unsubscribe += 1
 	    @campaign.save
 	  end
+
+          @user = EndUser.push_target @queue.email, :source => 'website', :no_register => true
+          @user.unsubscribe if @user
 	end
+
 	@unsubscribed = true
 	@text = modifier[:unsubscribed_text] || DEFAULT_UNSUBSCRIBED_TEXT.t
-	
+
 	paragraph_action('Unsubscribe',@unsubscribe.email)
       end
     else 

@@ -1,7 +1,7 @@
 
 class Mailing::WebivaSender < Mailing::Base
   
-  SENDING_WINDOW_SIZE = 1
+  SENDING_WINDOW_SIZE = 250
   
   def self.mailing_sender_handler_info
     { :name => 'Webiva Mailer'
@@ -77,15 +77,7 @@ class Mailing::WebivaSender < Mailing::Base
       
       skip_count = 0
       sent_count = 0
-      
-      case @campaign.data_model
-      when 'subscription':
-          mdl = UserSubscriptionEntry
-      when 'user_segment':
-          mdl = EndUser
-      else
-        mdl = ContentModel.find(@campaign.data_model).content_model
-      end
+      mdl = @campaign.data_model_class
 
       queues.each do |queue|
 	
@@ -96,6 +88,8 @@ class Mailing::WebivaSender < Mailing::Base
 
         if skip_target
           skip_count += 1
+          queue.skip = true
+          queue.save
         else
           
           entry = mdl.find_by_id(queue.model_id)
@@ -109,12 +103,13 @@ class Mailing::WebivaSender < Mailing::Base
           @campaign.add_delivery_variables(vars)
           
 	  begin
-	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
-	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
 	    queue.sent_at = Time.now
 	    queue.sent = true
+            queue.save
+	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
+	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
 	    sent_count += 1
-	  rescue SMTPError => e
+	  rescue Net::SMTPError => e
 	    queue.error = true
 	    queue.handled = false
 	    @campaign.status = 'error'
@@ -129,8 +124,11 @@ class Mailing::WebivaSender < Mailing::Base
 	    logger.error("Failed to send mail to #{queue.email} because '#{e}'")
 	  end
         end
-        
-        queue.save
+
+        if queue.error
+          queue.sent = false
+          queue.save
+        end
 
         unless @campaign.status == 'active'
 	  logger.warn("Stopping, campaign status changed to #{@campaign.status}")

@@ -1,7 +1,7 @@
 <% cms_unstyled_fields_for :campaign, @campaign do |f| -%>
   <% cms_unstyled_fields_for :segment, @segment  do |sf| -%>
 
-<h1 class="lightblue" style="padding:20px 0 10px 0;"><%= 'Targets'.t %></h1>
+<h2 class="inform"><%= 'Targets'.t %></h2>
 
 <table class="display_table">
 <tr>
@@ -44,8 +44,10 @@ if @campaign.market_segment && @campaign.market_segment.segment_type == @segment
     render :partial => 'segment_user_segment_detail', :locals => { :market_segment => @campaign.market_segment }
   when 'subscription'
     render :partial => 'segment_subscription_detail', :locals => { :market_segment => @campaign.market_segment }
-  else
+  when 'content_model'
     render :partial => 'segment_content_model_detail', :locals => { :market_segment => @campaign.market_segment }
+  else
+    render :partial => 'segment_everyone_detail', :locals => { :market_segment => @campaign.market_segment }
   end
 end 
 -%>

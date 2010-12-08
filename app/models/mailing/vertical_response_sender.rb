@@ -15,7 +15,8 @@ class Mailing::VerticalResponseSender < Mailing::Base
     
   def self.mailing_sender_handler_info
     { :name => 'Vertical Response Mailer',
-      :options_partial => '/mailing/senders/vr_options.rhtml'
+      :options_partial => '/mailing/senders/vr_options.rhtml',
+      :secure_options => %w(login access_pw)
     }
   end
   
@@ -45,7 +46,6 @@ class Mailing::VerticalResponseSender < Mailing::Base
 	end
       end
     end
-
   end
 
   def valid?
@@ -470,15 +470,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
 
       skip_count = 0
       sent_count = 0
-
-      case @campaign.data_model
-      when 'subscription':
-       mdl = UserSubscriptionEntry
-      when 'user_segment':
-       mdl = EndUser
-      else
-       mdl = ContentModel.find(@campaign.data_model).content_model
-      end
+      mdl = @campaign.data_model_class
       
       target_buf = ''
 
@@ -489,6 +481,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
 
         if skip_target
           skip_count += 1
+          queue.skip = true
         else
           entry = mdl.find_by_id(queue.model_id)
           if @campaign.data_model == 'subscription'

@@ -11,7 +11,8 @@
                       {
                         parameters: { email: $('sample_email').value },
                         onSuccess: function(req) {
-                          $('sent_sample').innerHTML = '<%= jh "Sent Sample to:".t %>' + $('sample_email').value;
+                          var html = req.responseText == ' ' ? '<%= jh "Sent Sample to:".t %>' + $('sample_email').value : "<span style='color:red;'>" + req.responseText + "</span>";
+                          $('sent_sample').innerHTML = html;
                           $('sent_sample').show();
                           $('sample_email').value = '';
                           $('send_butt').disabled = false;
@@ -72,11 +73,8 @@
 </script>
 
 <%= render :partial => 'campaign_steps' %>
-<hr/>
 
-<div class='admin_content admin_form'>
-
-<h1 class="lightblue" style="padding-bottom:15px;"><%= 'Confirm & Send'.t %></h1>
+<h2 class="inform"><%= 'Confirm & Send'.t %></h2>
 
 <table class="display_table" style="padding-bottom:20px;">
 <tr>
@@ -143,7 +141,7 @@
 
 <tr>
   <td>
-    <h1 class="lightblue" style="padding:15px 0;"><%= 'Send'.t %></h1>
+    <h2 class="inform"><%= 'Send'.t %></h2>
     <div>
         <%= form_tag('', :onsubmit=>'CampaignConfirmation.verify(); return false;') -%>
 	  <input type='hidden' name='send_campaign' value='1' />
@@ -159,5 +157,3 @@
 </tr>
 
 </table>
-
-</div>

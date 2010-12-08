@@ -35,17 +35,17 @@ CampaignEditor = {
 <%= active_table_javascript %>
 
 </script>
-<div class='admin_content'>
-<ul class='action_panel'>
-  <li><a href='<%= url_for :action => 'campaign' %>'><%= theme_icon("action","icons/actions/add.gif") %><%= "Create New Campaign".t %></a></li>
-  <li><% if @show_archived %>
-          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Hide Archived'.t, :action => 'index',:archived => 0 %>
+  <% action_panel :more => true do |p| %>
+     <%= p.link 'Create a new Campaign', :action => 'campaign', :icon => 'add.png' %>
+  <% end -%>
+
+  <% more_action_panel do |p| %>
+  <% if @show_archived %>
+    <%= p.link "Hide Archived",:action => 'index',:archived => 0, :icon => 'show.gif' %>
         <% else-%>
-          <%= link_to theme_icon("action","icons/actions/show.gif") + 'Show Archived'.t, :action => 'index',:archived => 1 %>
+    <%= p.link "Show Archived",:action => 'index',:archived => 1, :icon => 'show.gif' %>
         <% end -%>
-    </li>
-</ul>
-</div>
+      <% end -%>
 <hr/>
 
 <div class='admin_content'>

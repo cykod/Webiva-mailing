@@ -1,3 +1,23 @@
+<% if @refreshing -%>
+
+<table width="100%" cellspacing="0" cellpadding="0">
+<tr>
+  <td colspan='' align="center">
+    <br/>
+    <br/>
+    <h4><%= "Refreshing %s User List" / @segment.name %></h4>
+    <br/>
+    <p><%= "Please wait while user list is updated." %></p>
+  </td>
+</tr>
+</table>
+
+<script>
+SegmentList.refreshSegment(<%= market_segment.id %>);
+</script>
+
+<% else -%>
+
 <table width="100%" cellspacing="0" cellpadding="0">
 <tr>
   <td colspan='2' class="title">
@@ -14,9 +34,11 @@
 </tr>
 <tr>
   <td class="label"><%= "Members:".t %></td>
-  <td class="field"><a href='javascript:void(0);' onclick="openWindow('<%= url_for :action => 'segment_view_list', :path => market_segment.id %>','SegmentList',400,400,'no','no');">
+  <td class="field"><a href='javascript:void(0);' onclick="openWindow('<%= url_for :action => 'segment_view_list', :path => market_segment.id %>','SegmentList',400,400,'no','yes');">
       <%= sprintf("%d Members".t,market_segment.target_count)  %>
       </a>
   </td>
  </tr>
 </table>
+
+<% end -%>

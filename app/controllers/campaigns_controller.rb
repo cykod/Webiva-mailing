@@ -21,11 +21,11 @@ class CampaignsController < ModuleController
   
   before_filter :verify_mail_module, :except => ['missing_mail_module', 'mail_module_setup']
   
-  cms_admin_paths "e_marketing",
+  cms_admin_paths "mail",
                   'Content' => { :controller => '/content' },
                   'Options' =>   { :controller => '/options' },
                   'Modules' =>  { :controller => '/modules' },
-                  'E-marketing' => { :controller => 'emarketing' },
+                  'Mail' => { :controller => '/mail_manager' },
                   'Email Campaigns' => { :action => 'index' }
 
   def verify_mail_module
@@ -74,8 +74,9 @@ class CampaignsController < ModuleController
       @queue= @campaign.market_campaign_queues.find_by_queue_hash(params[:queue_hash]) || raise(InvalidPageDataException.new("Invalid Mailing"))
     
       # Make sure we have a user 
-      @user = EndUser.find_visited_target(@queue.email)
-      
+      @user = EndUser.find_target @queue.email, :source => 'website'
+      @user.elevate_user_level EndUser::UserLevel::VISITED
+
       if !@queue.opened?
 	      @queue.reload(:lock => true)
 	
@@ -98,25 +99,16 @@ class CampaignsController < ModuleController
     mail_template, tracking_variables = @campaign.prepare_mail_template(true)
     
     message = @campaign.market_campaign_message
-    
-    case @campaign.data_model
-    when 'subscription':
-      mdl = UserSubscriptionEntry
-    when 'user_segment':
-      mdl = EndUser 
-    else
-      mdl = ContentModel.find(@campaign.data_model).content_model
-    end
+    mdl = @campaign.data_model_class
     
     if @under_construction
       entry = mdl.find(:first)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
       end
-      
+
       vars = message.field_values(entry.attributes,'QUEUE')
       vars.merge!(@campaign.add_tracking_links(tracking_variables,'QUEUE'))
-        
     else
       entry = mdl.find_by_id(@queue.model_id)
       if @campaign.data_model == 'subscription'
@@ -156,9 +148,8 @@ class CampaignsController < ModuleController
           @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash, :lock=>true) || raise(InvalidPageDataException.new(@real_msg))
           
           # Make sure we have a user 
-          @user = EndUser.find_visited_target(@queue.email)
-          
-          
+          @user = EndUser.find_target @queue.email, :source => 'website'
+
           # Find or new a market link entry
           @link_entry = @market_link.market_link_entries.find_by_market_campaign_queue_id(@queue.id) || 
                         @market_link.market_link_entries.build(:first_clicked_at => Time.now,
@@ -200,9 +191,12 @@ class CampaignsController < ModuleController
           @queue.save
           
           # Save the session id related to this campaign queue
-          unless @queue.market_campaign_queue_sessions.find_by_session_id(session.session_id)
-            @queue.market_campaign_queue_sessions.create(:session_id => session.session_id, :entry_created_at => Time.now)
+          unless @queue.market_campaign_queue_sessions.find_by_session_id(request.session_options[:id])
+            session[:visiting_end_user_id] = @user.id if @user
+            @queue.market_campaign_queue_sessions.create(:session_id => request.session_options[:id], :entry_created_at => Time.now)
           end
+
+          session[:from_email_campaign] = true
         end
         
         # redirect to the linked page
@@ -237,7 +231,7 @@ class CampaignsController < ModuleController
       @campaign.save
       @queue.save
 
-      send_file @campaign.tracking_image_filename, :disposition => 'inline'
+      send_file "#{RAILS_ROOT}/public/images/spacer.gif", :disposition => 'inline', :type => 'image/gif'
     end
     rescue InvalidPageDataException => e
      render :nothing => true 
@@ -245,7 +239,7 @@ class CampaignsController < ModuleController
   end
 
   def missing_mail_module
-    cms_page_path ['E-marketing','Email Campaigns'], 'Missing Mail Module'
+    cms_page_path ['Mail','Email Campaigns'], 'Missing Mail Module'
 
     if check_mail_module
       redirect_to :action => 'index'
@@ -262,7 +256,7 @@ class CampaignsController < ModuleController
   end
 
   def mail_module_setup
-    cms_page_path ['E-marketing','Email Campaigns'], 'Mail Module Setup'
+    cms_page_path ['Mail','Email Campaigns'], 'Mail Module Setup'
 
     @options =  Configuration.options(params[:options])
     
@@ -318,7 +312,7 @@ class CampaignsController < ModuleController
   end
 
   def index
-    cms_page_path ['E-marketing'], 'Email Campaigns'
+    cms_page_path ['Mail'], 'Email Campaigns'
     
     page = params[:page] || 1
     
@@ -400,6 +394,8 @@ class CampaignsController < ModuleController
   end
 
   def campaign
+    @everyone = MarketSegment.push_everyone_segment
+
     opts = Mailing::AdminController.module_options(params[:options])
 
     if params[:path] && params[:path][0]
@@ -413,7 +409,7 @@ class CampaignsController < ModuleController
       return unless verify_campaign_setup
     end
 
-    cms_page_path ['E-marketing', 'Email Campaigns'], @campaign.id ? 'Edit Campaign' : 'New Campaign'
+    cms_page_path ['Mail', 'Email Campaigns'], @campaign.id ? 'Edit Campaign' : 'New Campaign'
 
     @senders = get_handler_options(:mailing,:sender).find_all { |opt| opts.enabled_senders.include?(opt[1]) }
 
@@ -433,14 +429,6 @@ class CampaignsController < ModuleController
       @campaign.sender_class.valid?
 
       if @campaign.market_segment
-	if @campaign.market_segment.segment_type == 'subscription'
-	  @campaign.data_model = 'subscription'
-	elsif @campaign.market_segment.segment_type == 'user_segment'
-	  @campaign.data_model = 'user_segment'
-	else
-	  market_segment = MarketSegment.find(@campaign.market_segment_id)
-	  @campaign.data_model = market_segment.options[:content_model_id]
-	end
 	@campaign.errors.add(:market_segment_id, 'Target has no members') if @campaign.market_segment.target_count == 0
       else
 	@campaign.errors.add(:market_segment_id, 'Target is missing') if @campaign.name
@@ -479,6 +467,8 @@ class CampaignsController < ModuleController
   end
 
   def segments(display=true)
+    @everyone ||= MarketSegment.push_everyone_segment
+
     @segment = MarketSegment.new(:segment_type => 'subscription')
 
     if display
@@ -492,9 +482,14 @@ class CampaignsController < ModuleController
       @campaign.market_segment_id = params[:market_segment_id] if params[:market_segment_id]
     elsif @campaign.market_segment
       @segment.segment_type = @campaign.market_segment.segment_type
+      @segment.segment_type = @segment.segment_type == 'everyone' ? 'user_segment' : @segment.segment_type
     end
 
     @segments = MarketSegment.for_campaign(@campaign).with_segment_type(@segment.segment_type).order_by_name.find(:all)
+
+    if @segment.segment_type == 'user_segment'
+      @segments = [@everyone] + @segments
+    end
 
     @segment_types = [['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
 
@@ -551,6 +546,12 @@ class CampaignsController < ModuleController
   
   def segment_info 
     @segment = MarketSegment.find(params[:segment_id])
+
+    if @segment.user_segment && @segment.user_segment.segment_type == 'filtered' && @segment.user_segment.last_ran_at < 1.day.ago
+      @segment.user_segment.refresh
+      @refreshing = ! @segment.user_segment.ready?
+    end
+
     render :action => 'segment_info'
   end
   
@@ -572,7 +573,7 @@ class CampaignsController < ModuleController
 
     @message = @campaign.market_campaign_message || @campaign.create_market_campaign_message
     
-    cms_page_path ['E-marketing','Email Campaigns'], 'Select Campaign Template'
+    cms_page_path ['Mail','Email Campaigns'], 'Select Campaign Template'
     
     if request.post?
     
@@ -632,7 +633,9 @@ class CampaignsController < ModuleController
     status = 200
 
     begin
-      url = URI.parse(params[:href])
+      href = params[:href]
+      href = Configuration.domain_link(href) unless href =~ /^https?:/
+      url = URI.parse(href)
       raise "Invalid Href" unless url.is_a?(URI::HTTP) || url.is_a?(URI::HTTPS)
       Net::HTTP.start(url.host, url.port) do |http|
         http.read_timeout = 4
@@ -739,7 +742,7 @@ class CampaignsController < ModuleController
   end
 
   def confirm
-    cms_page_path ['E-marketing','Email Campaigns'], 'Confirm Campaign'
+    cms_page_path ['Mail','Email Campaigns'], 'Confirm Campaign'
     
     @campaign = MarketCampaign.find(params[:path][0])
     return unless verify_campaign_setup
@@ -827,8 +830,12 @@ class CampaignsController < ModuleController
     generate_sample
     
     sender = @campaign.sender_class
-    sender.send_sample!(params[:email],@mail_template,@preview_vars)
-    
+    begin
+      sender.send_sample!(params[:email],@mail_template,@preview_vars)
+    rescue Net::SMTPSyntaxError => e
+      return render :inline => e.to_s
+    end
+
     render :nothing => true
   end
   
@@ -850,7 +857,7 @@ class CampaignsController < ModuleController
   
   
   def status
-    cms_page_path ['E-marketing','Email Campaigns'], 'Campaign Status'
+    cms_page_path ['Mail','Email Campaigns'], 'Campaign Status'
   
     @campaign = MarketCampaign.find(params[:path][0])
     if @campaign.under_construction?
@@ -912,7 +919,43 @@ class CampaignsController < ModuleController
       render :partial => 'details'
     end
   end
-  
+
+  class MarketCampaignBounceManager < HashModel
+    attr_accessor :campaign
+
+    attributes :action => 'unsubscribe'
+
+    validates_presence_of :action
+
+    @@action_options = [['Unsubscribe all bounced users', 'unsubscribe'], ['Delete all bounced users', 'delete']]
+    def self.action_options
+      @@action_options
+    end
+
+    def handle
+      case self.action
+      when 'unsubscribe'
+        self.campaign.run_worker(:unsubscribe_bounces)
+      when 'delete'
+        self.campaign.run_worker(:delete_bounce_users)
+      end
+    end
+  end
+
+  def bounces
+    @campaign = MarketCampaign.find(params[:path][0])
+    cms_page_path ['Mail','Email Campaigns', ['Campaign Status', url_for(:action => 'status', :path => @campaign.id)]], 'Bounce Management'
+
+    @bounce_manager = MarketCampaignBounceManager.new params[:bounce]
+    @bounce_manager.campaign = @campaign
+
+    if request.post? && params[:bounce]
+      @bounce_manager.handle
+      flash[:notice] = @bounce_manager.action == 'unsubscribe' ? 'Unsubscribing bounced users'.t : 'Deleting bounced users'.t
+      redirect_to :action => 'status', :path => @campaign.id
+    end
+  end
+
   private
   
   def campaign_action(campaign_ids,flash_text,&block)
@@ -998,7 +1041,7 @@ class CampaignsController < ModuleController
   end
 
   def self.mail_template_cms_path(controller)
-    [[ "E-marketing", ['Email Campaigns', controller.url_for(:controller => 'campaigns', :action => 'index')]], "Edit Mail Template"]
+    [[ "Mail", ['Email Campaigns', controller.url_for(:controller => 'campaigns', :action => 'index')]], "Edit Mail Template"]
   end
 
   def self.mail_template_save(mail_template, controller)
