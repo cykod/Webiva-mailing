@@ -1,3 +1,5 @@
+require 'net/smtp'
+
 
 class Mailing::WebivaSender < Mailing::Base
   

@@ -1,6 +1,7 @@
 require 'csv'
 require 'timeout'
 require 'net/http'
+require 'net/smtp'
 require 'uri'
 
 class CampaignsController < ModuleController

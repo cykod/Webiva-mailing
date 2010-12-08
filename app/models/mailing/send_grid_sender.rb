@@ -1,3 +1,5 @@
+require 'net/smtp' 
+
 
 class Mailing::SendGridSender < Mailing::Base
 
