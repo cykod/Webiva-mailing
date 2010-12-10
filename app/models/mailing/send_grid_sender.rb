@@ -1,3 +1,5 @@
+require 'net/smtp' 
+
 
 class Mailing::SendGridSender < Mailing::Base
 
@@ -91,15 +93,7 @@ class Mailing::SendGridSender < Mailing::Base
     self.smtp.from = email_vars['system:from']
     self.smtp.reply_to = email_vars['system:reply_to']
 
-    mdl = nil
-    case @campaign.data_model
-    when 'subscription'
-      mdl = UserSubscriptionEntry
-    when 'user_segment'
-      mdl = EndUser
-    else
-      mdl = ContentModel.find(@campaign.data_model).content_model
-    end
+    mdl = @campaign.data_model_class
 
     @campaign.market_campaign_queues.find_in_batches(:conditions => 'handled=0', :batch_size => SENDING_WINDOW_SIZE) do |queues|
       @campaign.reload
@@ -116,8 +110,8 @@ class Mailing::SendGridSender < Mailing::Base
       self.smtp.data = {}
       send_grid_vars.each { |fld_orig, fld| self.smtp.data[fld] = [] }
 
-      sent_ids = []
       skipped_ids = []
+      self.mark_as_sent queues.collect(&:id)
       queues.each do |queue|
         skip_target = skip_targets[queue.email] ? true : false
         skip_target ||= RFC822::EmailAddress.match(queue.email).nil?
@@ -138,22 +132,22 @@ class Mailing::SendGridSender < Mailing::Base
           self.smtp.receivers << queue.email
           send_grid_vars.each { |fld_orig, fld| self.smtp.data[fld] << vars[fld_orig] }
           sent_count += 1
-          sent_ids << queue.id
         end
       end
 
       begin
         self.smtp.send
       rescue Net::SMTPSyntaxError => e
+        @campaign.reload(:lock => true)
         @campaign.status = 'error'
         @campaign.error_message = e.to_s
         @campaign.save
+        self.mark_as_unhandled queues.collect(&:id)
         return
       end
 
       # update queue items as handled
-      MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => sent_ids}) unless sent_ids.empty?
-      MarketCampaignQueue.update_all("handled = 1, skip = 1", {:id => skipped_ids}) unless skipped_ids.empty?
+      self.mark_as_skipped skipped_ids
 
       @campaign.reload(:lock => true)
       @campaign.stat_sent += sent_count
@@ -169,7 +163,28 @@ class Mailing::SendGridSender < Mailing::Base
       @campaign.save
     end
   end          
-  
+
+  def mark_as_skipped(ids)
+    return if ids.empty?
+    MarketCampaignQueue.send(:with_exclusive_scope) do
+      MarketCampaignQueue.update_all("handled = 1, skip = 1, sent = 0, sent_at = NULL", {:id => ids})
+    end
+  end
+
+  def mark_as_sent(ids)
+    return if ids.empty?
+    MarketCampaignQueue.send(:with_exclusive_scope) do
+      MarketCampaignQueue.update_all(["handled = 1, sent = 1, sent_at = ?", Time.now], {:id => ids})
+    end
+  end
+
+  def mark_as_unhandled(ids)
+    return if ids.empty?
+    MarketCampaignQueue.send(:with_exclusive_scope) do
+      MarketCampaignQueue.update_all("handled = 0, sent = 0, sent_at = NULL", {:id => ids})
+    end
+  end
+
   def update_stats
     totals = @options.service.get_all_time_totals self.category_name
     if totals && totals['bounces'].to_i > 0

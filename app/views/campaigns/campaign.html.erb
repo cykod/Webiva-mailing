@@ -7,15 +7,16 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
     showingTargets: <%= showAllOptions ? 'true' : 'false' %>,
     showingAdvanced: <%= showAllOptions ? 'true' : 'false' %>,
     showingButtons: <%= showAllOptions ? 'true' : 'false' %>,
+    refreshTimer: null,
 
-    selectSegment: function(segment_id) {
-      $('segment_info').innerHTML = SegmentList.segments[segment_id];
-      $('next_butt').disabled = false;
-      $('delete_segementation').show();
-      $('edit_segment_option').show();
-      
+    refreshSegment: function(segment_id) {
+      if(SegmentList.refreshTimer) {
+        clearTimeout(SegmentList.refreshTimer);
+        SegmentList.refreshTimer = null;
+      }
+      SegmentList.refreshTimer = setTimeout(function() {SegmentList.refreshTimer = null; SegmentList.selectSegment(segment_id);}, 1000);
     },
-    
+
     selectType: function(segment_type) {
       $('campaign_market_segment_id').options.length = 0;
       $('segment_info').innerHTML = '<div align="center"><b><%= jh "Loading Segments...".t %></b></div>';
@@ -25,6 +26,11 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
     },
     
     selectSegment: function(segment_id) {
+      if(SegmentList.refreshTimer) {
+        clearTimeout(SegmentList.refreshTimer);
+        SegmentList.refreshTimer = null;
+      }
+
       if(SegmentList.showingAdvanced == false) {
         SegmentList.showingAdvanced = true;
         new Effect.Appear('advanced_options_toggle', {duration: 0.5});

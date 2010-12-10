@@ -1,6 +1,7 @@
 require 'csv'
 require 'timeout'
 require 'net/http'
+require 'net/smtp'
 require 'uri'
 
 class CampaignsController < ModuleController
@@ -99,25 +100,16 @@ class CampaignsController < ModuleController
     mail_template, tracking_variables = @campaign.prepare_mail_template(true)
     
     message = @campaign.market_campaign_message
-    
-    case @campaign.data_model
-    when 'subscription':
-      mdl = UserSubscriptionEntry
-    when 'user_segment':
-      mdl = EndUser 
-    else
-      mdl = ContentModel.find(@campaign.data_model).content_model
-    end
+    mdl = @campaign.data_model_class
     
     if @under_construction
       entry = mdl.find(:first)
       if @campaign.data_model == 'subscription'
         entry = entry.end_user if entry.end_user_id
       end
-      
+
       vars = message.field_values(entry.attributes,'QUEUE')
       vars.merge!(@campaign.add_tracking_links(tracking_variables,'QUEUE'))
-        
     else
       entry = mdl.find_by_id(@queue.model_id)
       if @campaign.data_model == 'subscription'
@@ -204,6 +196,8 @@ class CampaignsController < ModuleController
             session[:visiting_end_user_id] = @user.id if @user
             @queue.market_campaign_queue_sessions.create(:session_id => request.session_options[:id], :entry_created_at => Time.now)
           end
+
+          session[:from_email_campaign] = true
         end
         
         # redirect to the linked page
@@ -401,6 +395,8 @@ class CampaignsController < ModuleController
   end
 
   def campaign
+    @everyone = MarketSegment.push_everyone_segment
+
     opts = Mailing::AdminController.module_options(params[:options])
 
     if params[:path] && params[:path][0]
@@ -434,14 +430,6 @@ class CampaignsController < ModuleController
       @campaign.sender_class.valid?
 
       if @campaign.market_segment
-	if @campaign.market_segment.segment_type == 'subscription'
-	  @campaign.data_model = 'subscription'
-	elsif @campaign.market_segment.segment_type == 'user_segment'
-	  @campaign.data_model = 'user_segment'
-	else
-	  market_segment = MarketSegment.find(@campaign.market_segment_id)
-	  @campaign.data_model = market_segment.options[:content_model_id]
-	end
 	@campaign.errors.add(:market_segment_id, 'Target has no members') if @campaign.market_segment.target_count == 0
       else
 	@campaign.errors.add(:market_segment_id, 'Target is missing') if @campaign.name
@@ -480,6 +468,8 @@ class CampaignsController < ModuleController
   end
 
   def segments(display=true)
+    @everyone ||= MarketSegment.push_everyone_segment
+
     @segment = MarketSegment.new(:segment_type => 'subscription')
 
     if display
@@ -493,9 +483,14 @@ class CampaignsController < ModuleController
       @campaign.market_segment_id = params[:market_segment_id] if params[:market_segment_id]
     elsif @campaign.market_segment
       @segment.segment_type = @campaign.market_segment.segment_type
+      @segment.segment_type = @segment.segment_type == 'everyone' ? 'user_segment' : @segment.segment_type
     end
 
     @segments = MarketSegment.for_campaign(@campaign).with_segment_type(@segment.segment_type).order_by_name.find(:all)
+
+    if @segment.segment_type == 'user_segment'
+      @segments = [@everyone] + @segments
+    end
 
     @segment_types = [['Subscriptions', 'subscription'], ['User Lists', 'user_segment'], ['Special Import', 'content_model']]
 
@@ -552,6 +547,12 @@ class CampaignsController < ModuleController
   
   def segment_info 
     @segment = MarketSegment.find(params[:segment_id])
+
+    if @segment.user_segment && @segment.user_segment.segment_type == 'filtered' && @segment.user_segment.last_ran_at < 1.day.ago
+      @segment.user_segment.refresh
+      @refreshing = ! @segment.user_segment.ready?
+    end
+
     render :action => 'segment_info'
   end
   
@@ -633,7 +634,9 @@ class CampaignsController < ModuleController
     status = 200
 
     begin
-      url = URI.parse(params[:href])
+      href = params[:href]
+      href = Configuration.domain_link(href) unless href =~ /^https?:/
+      url = URI.parse(href)
       raise "Invalid Href" unless url.is_a?(URI::HTTP) || url.is_a?(URI::HTTPS)
       Net::HTTP.start(url.host, url.port) do |http|
         http.read_timeout = 4

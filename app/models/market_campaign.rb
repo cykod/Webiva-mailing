@@ -33,7 +33,7 @@ class MarketCampaign < DomainModel
   QUEUE_WINDOW_SIZE = 1000
 
   def self.create_custom_campaign(name,user_ids)
-    campaign = self.create(:name => name,:campaign_type=>'email',:data_model => 'user_segment')
+    campaign = self.create(:name => name,:campaign_type=>'email')
     user_segment = UserSegment.create(:name => name, :segment_type => 'custom')
     user_segment.add_ids user_ids
     user_segment.market_segment.market_campaign_id = campaign.id
@@ -93,7 +93,8 @@ class MarketCampaign < DomainModel
     self.status = 'sending'
     self.error_message = nil
     self.save
-    parameters = (parameters || {})[:resending] = true
+    parameters ||= {}
+    parameters[:resending] = true
     self.run_campaign(parameters)
     true
   end
@@ -216,6 +217,14 @@ class MarketCampaign < DomainModel
       user = queue.end_user
       user.destroy if user
     end
+  end
+
+  def data_model_class
+    self.market_segment.data_model_class if self.market_segment
+  end
+
+  def before_save
+    self.data_model = self.market_segment.segment_type if self.market_segment
   end
 
   private

@@ -28,6 +28,8 @@
          case t.market_segment.segment_type
          when 'user_segment':
           'User List'.t
+         when 'everyone':
+          'Everyone'.t
          when 'subscription':
           t.market_segment.user_subscription.name
          else 

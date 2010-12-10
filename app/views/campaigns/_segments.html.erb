@@ -44,8 +44,10 @@ if @campaign.market_segment && @campaign.market_segment.segment_type == @segment
     render :partial => 'segment_user_segment_detail', :locals => { :market_segment => @campaign.market_segment }
   when 'subscription'
     render :partial => 'segment_subscription_detail', :locals => { :market_segment => @campaign.market_segment }
-  else
+  when 'content_model'
     render :partial => 'segment_content_model_detail', :locals => { :market_segment => @campaign.market_segment }
+  else
+    render :partial => 'segment_everyone_detail', :locals => { :market_segment => @campaign.market_segment }
   end
 end 
 -%>

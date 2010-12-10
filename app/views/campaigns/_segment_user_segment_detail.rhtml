@@ -1,3 +1,23 @@
+<% if @refreshing -%>
+
+<table width="100%" cellspacing="0" cellpadding="0">
+<tr>
+  <td colspan='' align="center">
+    <br/>
+    <br/>
+    <h4><%= "Refreshing %s User List" / @segment.name %></h4>
+    <br/>
+    <p><%= "Please wait while user list is updated." %></p>
+  </td>
+</tr>
+</table>
+
+<script>
+SegmentList.refreshSegment(<%= market_segment.id %>);
+</script>
+
+<% else -%>
+
 <table width="100%" cellspacing="0" cellpadding="0">
 <tr>
   <td colspan='2' class="title">
@@ -20,3 +40,5 @@
   </td>
  </tr>
 </table>
+
+<% end -%>

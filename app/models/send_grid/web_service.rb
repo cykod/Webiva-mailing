@@ -1,5 +1,6 @@
+require 'resthome'
 
-class SendGrid::WebService < ActiveWebService
+class SendGrid::WebService < RESTHome
 
   # Profile
   route :profile, '/api/profile.get.json', :method => :post, :no_body => true
