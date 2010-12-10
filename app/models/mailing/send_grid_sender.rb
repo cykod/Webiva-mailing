@@ -137,7 +137,7 @@ class Mailing::SendGridSender < Mailing::Base
 
       begin
         self.smtp.send
-      rescue Net::SMTPSyntaxError => e
+      rescue Errno::ECONNABORTED, Errno::ECONNRESET, Errno::EPIPE, SocketError, Net::SMTPSyntaxError => e
         @campaign.reload(:lock => true)
         @campaign.status = 'error'
         @campaign.error_message = e.to_s
