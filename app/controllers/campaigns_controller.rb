@@ -21,7 +21,8 @@ class CampaignsController < ModuleController
   include CampaignsHelper
   
   before_filter :verify_mail_module, :except => ['missing_mail_module', 'mail_module_setup']
-  
+  before_filter :strip_param_spaces
+
   cms_admin_paths "mail",
                   'Content' => { :controller => '/content' },
                   'Options' =>   { :controller => '/options' },
@@ -1029,6 +1030,12 @@ class CampaignsController < ModuleController
     @preview_vars.merge!(@campaign.add_tracking_links(tracking_variables,'QUEUE'))
     
     @campaign.add_delivery_variables(@preview_vars)
+  end
+
+  def strip_param_spaces
+    %w(campaign_hash queue_hash link_hash).each do |p|
+      params[p].gsub!(' ', '') if params[p]
+    end
   end
 
   public
