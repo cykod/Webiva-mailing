@@ -43,7 +43,7 @@ class MarketCampaign < DomainModel
   end
   
   def after_create
-    self.identifier_hash = create_hash(self.name + self.id.to_s)
+    self.identifier_hash = create_hash(self.name + self.id.to_s)[0..9]
     self.save
   end
   
@@ -193,7 +193,7 @@ class MarketCampaign < DomainModel
       if !ml
 	ml = self.market_links.create(
 	  :link_to => link,
-	  :link_hash => create_hash(link)
+	  :link_hash => create_hash(link)[0..7]
 	)
       end
       ml

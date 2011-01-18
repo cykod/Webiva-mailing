@@ -130,9 +130,10 @@ class CampaignsController < ModuleController
   end
    
   def link 
-    campaign_hash = params[:campaign_hash]
-    queue_hash = params[:queue_hash]
-    link_hash = params[:link_hash]
+    campaign_hash = params[:campaign_hash].to_s.gsub(/[^A-F0-9]+/,'')
+    queue_hash = params[:queue_hash].to_s.gsub(/[^A-F0-9]+/,'')
+    link_hash = params[:link_hash].to_s.gsub(/[^A-F0-9]+/,'')
+
 
     @tst_msg = "This link was sent in a test message and is no longer valid once a campaign has been sent.".t
     @real_msg = "You have clicked on an invalid link.".t
@@ -211,8 +212,9 @@ class CampaignsController < ModuleController
   
   def image
     begin
-    campaign_hash = params[:campaign_hash]
-    queue_hash = params[:queue_hash]
+    campaign_hash = params[:campaign_hash].to_s.gsub(/[^A-F0-9]+/,'')
+    queue_hash = params[:queue_hash].to_s.gsub(/[^A-F0-9]+/,'')
+
           
     if queue_hash =='QUEUE'
 #      @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Image"))
