@@ -131,7 +131,7 @@ class CampaignsController < ModuleController
    
   def link 
     campaign_hash = params[:campaign_hash].to_s.gsub(/[^A-F0-9]+/,'')
-    queue_hash = params[:queue_hash].to_s.gsub(/[^A-F0-9]+/,'')
+    queue_hash = params[:queue_hash].to_s.gsub(/[^A-Z0-9]+/,'')
     link_hash = params[:link_hash].to_s.gsub(/[^A-F0-9]+/,'')
 
 
