@@ -15,7 +15,6 @@ class Mailing::AdminController < ModuleController
   
   register_handler :mailing, :sender, "Mailing::WebivaSender"
   register_handler :mailing, :receiver, "Mailing::WebivaReceiver"
-  register_handler :mailing, :sender, "Mailing::VerticalResponseSender"
   register_handler :mailing, :sender, "Mailing::SendGridSender"
   
   register_handler :navigation, :mail, "Mailing::AdminController"
