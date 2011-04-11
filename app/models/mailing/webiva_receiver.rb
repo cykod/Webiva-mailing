@@ -9,16 +9,16 @@ class Mailing::WebivaReceiver
   end   
 
   def self.receive(email)
-    return unless email.content_type == 'multipart/report'
+    return unless email.delivery_status_report?
 
-    status_part = email.parts.detect do |part|
-      part.content_type == 'message/delivery-status'
-    end
-
-    return unless status_part
-
+    parts = email.body.to_s.split "--#{email.boundary}\n"
+    return if parts.empty?
+    parts.shift if parts[0].blank?
+    status_part = Mail::Message.new parts[0]
+    original_message_part = Mail::Message.new parts[1]
+    
     status_code = nil
-    status_part.body.split(/\n/).each do |line|
+    status_part.body.to_s.split(/\n/).each do |line|
       key, value = line.split(/:/)
       next unless key == 'Status'
       status_code = value.strip
@@ -39,15 +39,9 @@ class Mailing::WebivaReceiver
 
     return unless status_message == 'Failure'
 
-    original_message_part = email.parts.detect do |part|
-      part.content_type == 'message/rfc822'
-    end
+    parsed_msg = Mail::Message.new(original_message_part.body.to_s)
 
-    return unless original_message_part
-
-    parsed_msg = TMail::Mail.parse(original_message_part.body)
-
-    webiva_message_id = parsed_msg.header_string('x-webiva-message-id')
+    webiva_message_id = parsed_msg.header['X-Webiva-Message-Id'].to_s.to_s
     return unless webiva_message_id
 
     campaign_identifier_hash, queue_hash = webiva_message_id.split(/\//)

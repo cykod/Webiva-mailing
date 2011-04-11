@@ -70,7 +70,7 @@
   </td>
   <td align='center'>
     <% if !t.under_construction? %>
-      <%= link_to theme_image_tag("icons/table_actions/document.gif"), :action => 'status', :path => t.id  %>
+      <%= link_to theme_image_tag("icons/table_actions/document.gif"), :action => 'campaign_status', :path => t.id  %>
     <% else -%>
       -
     <% end -%>  

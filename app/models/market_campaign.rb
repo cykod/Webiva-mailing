@@ -32,6 +32,9 @@ class MarketCampaign < DomainModel
 
   QUEUE_WINDOW_SIZE = 1000
 
+  before_save :set_data_model
+  after_create :set_identifier
+
   def self.create_custom_campaign(name,user_ids)
     campaign = self.create(:name => name,:campaign_type=>'email')
     user_segment = UserSegment.create(:name => name, :segment_type => 'custom')
@@ -42,7 +45,7 @@ class MarketCampaign < DomainModel
     campaign
   end
   
-  def after_create
+  def set_identifier
     self.identifier_hash = create_hash(self.name + self.id.to_s)[0..9]
     self.save
   end
@@ -223,7 +226,7 @@ class MarketCampaign < DomainModel
     self.market_segment.data_model_class if self.market_segment
   end
 
-  def before_save
+  def set_data_model
     self.data_model = self.market_segment.segment_type if self.market_segment
   end
 
@@ -278,7 +281,7 @@ class MarketCampaign < DomainModel
     
     mail_template_attributes = mail_template.attributes
     # Save the attachments to a ID attachment list
-    mail_template_attributes['attachment_list'] = mail_template.domain_files.collect { |df| df.id }
+    mail_template_attributes['attachment_list'] = mail_template.attachments.collect { |df| df.id }
     self.market_campaign_message.update_attribute(:message_body,mail_template_attributes)
     
     

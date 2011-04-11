@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-require 'VRAPIDriver.rb'
-
 
 module VRAPI
 

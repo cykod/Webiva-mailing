@@ -1,9 +1,8 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../mailing_spec_helper"
+require "spec_helper"
+require "mailing_spec_helper"
 
 describe Mailing::PageRenderer, :type => :controller do
-  controller_name :page
-
-  integrate_views
+  render_views
 
   reset_domain_tables :mail_templates
 

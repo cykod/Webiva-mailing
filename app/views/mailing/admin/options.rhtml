@@ -1,6 +1,6 @@
 <div class='admin_content'>
 
-<% cms_form_for :options,@options, :html => { :class => 'admin_form' }  do |f| -%>
+<%= cms_form_for :options,@options, :html => { :class => 'admin_form' }  do |f| -%>
   <%= f.check_boxes :enabled_senders, @senders %>
   <%= f.select :default_sender, @senders %>
 <% @handlers.each do |sender|

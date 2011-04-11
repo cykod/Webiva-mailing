@@ -5,7 +5,7 @@ class MailReceiver < ActionMailer::Base
 
   def receive(email)
      File.open("/home/pascal/projects/work/webiva/log/output.txt",'a') do |f|
-      f.write("#{RAILS_ROOT}");
+      f.write("#{Rails.root}");
       f.write([email.to, email.subject, email.message_id, email.body].inspect + "\n")
      end
      

@@ -1,4 +1,5 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../mailing_spec_helper"
+require "spec_helper"
+require "mailing_spec_helper"
 
 describe Mailing::SendGridSender do
 

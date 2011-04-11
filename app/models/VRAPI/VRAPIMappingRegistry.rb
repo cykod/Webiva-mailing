@@ -1,4 +1,3 @@
-require 'VRAPI/VRAPI.rb'
 require 'soap/mapping'
 
 module VRAPI

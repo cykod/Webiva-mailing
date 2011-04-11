@@ -1,5 +1,3 @@
-require 'VRAPI/VRAPI.rb'
-require 'VRAPI/VRAPIMappingRegistry.rb'
 require 'soap/rpc/driver'
 
 module VRAPI

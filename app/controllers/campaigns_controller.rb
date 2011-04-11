@@ -52,7 +52,7 @@ class CampaignsController < ModuleController
   
   def verify_campaign_setup
     if ! @campaign.under_construction?
-      redirect_to :action => 'status', :path => @campaign.id
+      redirect_to :action => 'campaign_status', :path => @campaign.id
       return false;
     else
       return true
@@ -162,7 +162,7 @@ class CampaignsController < ModuleController
           @link_entry.click_count += 1
           @link_entry.last_clicked_at = Time.now()
           @link_entry.save
-          
+
           # This is a unique click on the link
           # if we have only one click on this link entry
           if @link_entry.click_count == 1
@@ -235,7 +235,7 @@ class CampaignsController < ModuleController
       @campaign.save
       @queue.save
 
-      send_file "#{RAILS_ROOT}/public/images/spacer.gif", :disposition => 'inline', :type => 'image/gif'
+      send_file "#{Rails.root}/public/images/spacer.gif", :disposition => 'inline', :type => 'image/gif'
     end
     rescue InvalidPageDataException => e
      render :nothing => true 
@@ -860,7 +860,7 @@ class CampaignsController < ModuleController
   end
   
   
-  def status
+  def campaign_status
     cms_page_path ['Mail','Email Campaigns'], 'Campaign Status'
   
     @campaign = MarketCampaign.find(params[:path][0])
@@ -948,7 +948,7 @@ class CampaignsController < ModuleController
 
   def bounces
     @campaign = MarketCampaign.find(params[:path][0])
-    cms_page_path ['Mail','Email Campaigns', ['Campaign Status', url_for(:action => 'status', :path => @campaign.id)]], 'Bounce Management'
+    cms_page_path ['Mail','Email Campaigns', ['Campaign Status', url_for(:action => 'campaign_status', :path => @campaign.id)]], 'Bounce Management'
 
     @bounce_manager = MarketCampaignBounceManager.new params[:bounce]
     @bounce_manager.campaign = @campaign
@@ -956,7 +956,7 @@ class CampaignsController < ModuleController
     if request.post? && params[:bounce]
       @bounce_manager.handle
       flash[:notice] = @bounce_manager.action == 'unsubscribe' ? 'Unsubscribing bounced users'.t : 'Deleting bounced users'.t
-      redirect_to :action => 'status', :path => @campaign.id
+      redirect_to :action => 'campaign_status', :path => @campaign.id
     end
   end
 

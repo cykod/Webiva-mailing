@@ -1,11 +1,5 @@
 #!/usr/local/bin/ruby   
 
-require 'rubygems'
-require 'login.rb'
-require 'VRAPIDriver.rb'
-vr = VRAPIPortType.new
-
-
 puts "Log-in..."
 sid = vr.login({
                  'username' => $username,

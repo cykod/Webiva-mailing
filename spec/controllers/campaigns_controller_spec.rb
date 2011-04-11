@@ -1,4 +1,5 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../mailing_spec_helper"
+require "spec_helper"
+require "mailing_spec_helper"
 
 describe CampaignsController do
 
@@ -313,7 +314,7 @@ describe CampaignsController do
       @campaign.save
 
       get 'campaign', :path => [@campaign.id]
-      response.should redirect_to(:action => 'status', :path => [@campaign.id])
+      response.should redirect_to(:action => 'campaign_status', :path => [@campaign.id])
     end
 
     it "should redirect user if campaign is not under_construction?" do
@@ -322,7 +323,7 @@ describe CampaignsController do
       @campaign.save
 
       get 'message', :path => [@campaign.id]
-      response.should redirect_to(:action => 'status', :path => [@campaign.id])
+      response.should redirect_to(:action => 'campaign_status', :path => [@campaign.id])
     end
 
     it "should redirect user if campaign is not under_construction?" do
@@ -331,7 +332,7 @@ describe CampaignsController do
       @campaign.save
 
       get 'confirm', :path => [@campaign.id]
-      response.should redirect_to(:action => 'status', :path => [@campaign.id])
+      response.should redirect_to(:action => 'campaign_status', :path => [@campaign.id])
     end
 
     it "should redirect user if campaign is not under_construction?" do
@@ -340,7 +341,7 @@ describe CampaignsController do
       @campaign.save
 
       get 'verify', :path => [@campaign.id]
-      response.should redirect_to(:action => 'status', :path => [@campaign.id])
+      response.should redirect_to(:action => 'campaign_status', :path => [@campaign.id])
     end
 
     it "should render the message page" do
@@ -412,21 +413,21 @@ describe CampaignsController do
       @res = Net::HTTPSuccess.new 2, 200, 'OK'
       fake_net_http(@res)
       post 'validate_link', :href => 'http://www.test.dev/'
-      response.status.should == '200 OK'
+      response.status.should == 200
     end
 
     it "should validate link" do
       @res = Net::HTTPRedirection.new 3, 301, 'Redirect'
       fake_net_http(@res)
       post 'validate_link', :href => 'http://www.test.dev/'
-      response.status.should == '200 OK'
+      response.status.should == 200
     end
 
     it "should invalidate link" do
       @res = Net::HTTPClientError.new 4, 404, 'Not Found'
       fake_net_http(@res)
       post 'validate_link', :href => 'http://www.test.dev/'
-      response.status.should == '404 Not Found'
+      response.status.should == 404
     end
 
     it "should be able to preview template" do
@@ -528,14 +529,14 @@ describe CampaignsController do
       @campaign.status = 'active'
       @campaign.save
       get 'target_list', :path => [@campaign.id]
-      response.should redirect_to(:action => 'status', :path => [@campaign.id])
+      response.should redirect_to(:action => 'campaign_status', :path => [@campaign.id])
     end
 
     it "should render update_content_model_options page" do
       @fields = mock_model ContentModelField, :name => 'Email', :field => 'email'
       @content_model = mock_model ContentModel, :content_model_fields => [@fields]
       ContentModel.should_receive(:find_by_id).with('1').and_return(@content_model)
-      get 'update_content_model_options', :content_model_id => 1
+      get 'update_content_model_options', :content_model_id => '1'
       response.should render_template('_segment_edit_content_model_detail')
     end
 
@@ -543,13 +544,13 @@ describe CampaignsController do
       @campaign = create_ready_to_send_campaign
       @campaign.status = 'active'
       @campaign.save
-      get 'status', :path => [@campaign.id]
-      response.should render_template('status')
+      get 'campaign_status', :path => [@campaign.id]
+      response.should render_template('campaign_status')
     end
 
     it "should redirect if campaign is under_construction?" do
       @campaign = create_ready_to_send_campaign
-      get 'status', :path => [@campaign.id]
+      get 'campaign_status', :path => [@campaign.id]
       response.should redirect_to(:action => 'campaign', :path => [@campaign.id])
     end
 
@@ -695,7 +696,7 @@ describe CampaignsController do
       @campaign.status = 'initializing'
       @campaign.send_campaign
       @queue = @campaign.market_campaign_queues.find_by_email(@user1.email)
-      @link = @campaign.market_links.create :link_to => 'http://www.test.dev/', :link_hash => 'link'
+      @link = @campaign.market_links.create :link_to => 'http://www.test.dev/', :link_hash => 'FFFF'
     end
 
     it "should be able to view a sent mail template" do
@@ -708,9 +709,11 @@ describe CampaignsController do
       @queue.opened = true
       @queue.save
       @link.clicked.should == 0
-      assert_difference 'MarketLinkEntry.count', 1 do
+
+      expect {
 	get 'link', :campaign_hash => @campaign.identifier_hash, :queue_hash => @queue.queue_hash, :link_hash => @link.link_hash
-      end
+      }.to change{ MarketLinkEntry.count }
+
       @link.reload
       @link.clicked.should == 1
     end

@@ -109,7 +109,7 @@ class Mailing::WebivaSender < Mailing::Base
 	    queue.sent = true
             queue.save
 	    mail_template.webiva_message_id = "#{@campaign.identifier_hash}/#{queue.queue_hash}"
-	    mail = MailTemplateMailer.deliver_to_address(queue.email,mail_template,vars)
+	    mail = MailTemplateMailer.to_address(queue.email,mail_template,vars).deliver
 	    sent_count += 1
 	  rescue Net::SMTPError => e
 	    queue.error = true
@@ -164,7 +164,7 @@ class Mailing::WebivaSender < Mailing::Base
   
   def send_sample!(email,mail_template,vars)
     begin
-      MailTemplateMailer.deliver_to_address(email,mail_template,vars,'QUEUE')
+      MailTemplateMailer.to_address(email,mail_template,vars,'QUEUE').deliver
       true
     rescue Exception => e
       logger.error( "Send sample email to #{email} failed: #{e}" )

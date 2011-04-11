@@ -1,8 +1,5 @@
 #!/usr/local/bin/ruby   
 
-require 'VRAPIDriver.rb'
-require 'login.rb'
-
 vr = VRAPIPortType.new
 file_html = 'message_content.html'
 html = File.new(file_html, "r")

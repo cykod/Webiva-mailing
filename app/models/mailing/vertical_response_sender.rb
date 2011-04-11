@@ -1,6 +1,6 @@
 require 'csv'
 require 'base64'
-require 'VRAPI/VRAPIDriver.rb'
+require File.expand_path('../../VRAPI/init', __FILE__)
 
 class Mailing::VerticalResponseSender < Mailing::Base
   

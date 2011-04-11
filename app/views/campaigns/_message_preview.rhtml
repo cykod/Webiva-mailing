@@ -9,8 +9,8 @@
       <tr><td class='label'><%= "To:".t %></td><td class='field'><%= @target[0] %></td></tr>
       <tr><td class='label'><%= "Subject:".t %></td><td class='field'><%= @mail_template.render_subject(@preview_vars) %></td></tr>
       <tr><td class='label'><%= "Attachments:".t %></td><td class='field'>
-        <% if @mail_template.domain_files.length > 0 %>
-          <% @mail_template.domain_files.each do |df| %>
+        <% if @mail_template.attachments.length > 0 %>
+          <% @mail_template.attachments.each do |df| %>
             <%= link_to df.name, df.url -%><br/>
           <% end -%>
         <% else -%>

@@ -1,4 +1,5 @@
-require  File.expand_path(File.dirname(__FILE__)) + "/../../mailing_spec_helper"
+require "spec_helper"
+require "mailing_spec_helper"
 
 describe Mailing::WebivaReceiver do
 
@@ -10,24 +11,22 @@ describe Mailing::WebivaReceiver do
   end
 
   it "should set the market_campaign_queue as bounced" do
-    @email = TMail::Mail.new
+    @email = Mail::Message.new
     @email.to = 'test@test.dev'
     @email.from = 'admin@test.dev'
-    @email['X-Webiva-Domain'] = DomainModel.active_domain_name
-    @email['X-Webiva-Handler'] = 'test/handler'
-    @email['X-Webiva-Message-Id'] = "#{@campaign.identifier_hash}/queue-hash"
+    @email.headers 'X-Webiva-Domain' => DomainModel.active_domain_name, 'X-Webiva-Handler' => 'test/handler', 'X-Webiva-Message-Id' => "#{@campaign.identifier_hash}/queue-hash"
     @email.body = 'Test Body'
-
-    @status = TMail::Mail.new
-    @status.set_content_type 'message', 'delivery-status'
+    
+    @status = Mail::Message.new
+    @status.content_type = 'message/delivery-status'
     @status.body = 'Status: 5.4.4'
 
-    @orginal = TMail::Mail.new
-    @orginal.set_content_type 'message', 'rfc822'
+    @orginal = Mail::Message.new
+    @orginal.content_type 'message/rfc822'
     @orginal.body = @email.to_s
 
-    @bounce = TMail::Mail.new
-    @bounce.set_content_type 'multipart', 'report', {'report-type' => 'delivery-status', 'boundary' => 'xxxxxx'}
+    @bounce = Mail::Message.new
+    @bounce.content_type = 'multipart/report report-type=delivery-status; boundary=xxxxxx'
     @bounce.mime_version = '1.0'
     @bounce.body = "--xxxxxx\n" + @status.to_s + "\n--xxxxxx\n" + @orginal.to_s
 
