@@ -3,14 +3,14 @@
 <% end -%>
 <% case @detail_type
    when 'opened': %>
-  <% table_for @queue_entries, [ 'Email','Opened At' ], :class => 'data_table' do |queue| %>
+  <%= table_for @queue_entries, [ 'Email','Opened At' ], :class => 'data_table' do |queue| %>
   <tr>
     <td><%= queue.email %></td>
     <td><%= queue.opened_at.localize("%m/%d/%Y %H:%M".t) %></td>
   </tr>
   <% end -%>
   <% when 'clicked': %>
-  <% table_for @queue_entries, [ 'Email','Link','Click Count','Last Click' ], :class => 'data_table' do |queue| %>
+  <%= table_for @queue_entries, [ 'Email','Link','Click Count','Last Click' ], :class => 'data_table' do |queue| %>
     <tr>
       <td><%= queue.email %></td>
     </tr>
@@ -24,7 +24,7 @@
     <% end -%>
   <% end -%>
   <% when 'bounced', 'unsubscribed': %>
-    <% table_for @queue_entries, [ 'Email' ], :class => 'data_table' do |queue| %>
+    <%= table_for @queue_entries, [ 'Email' ], :class => 'data_table' do |queue| %>
     <tr>
       <td><%= queue.email %></td>
     </tr>

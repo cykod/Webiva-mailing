@@ -25,7 +25,7 @@ CampaignViewer = {
 }
 
 </script>
-<% action_panel do |p| -%>
+<%= action_panel do |p| -%>
   <%= p.link("Resend Campaign", :action=>'resend_campaign', :path => [ @campaign.id ], :icon => 'expand.gif') if @campaign.can_resend? %>
   <%= p.link "Download Opened Detail", :action=>'details',:download => 1,:detail_type => 'opened',:path => [ @campaign.id ], :icon => 'download.gif' %>
   <%= p.link "Download Link Details", :action=>'details',:download => 1,:detail_type => 'clicked',:path => [ @campaign.id ], :icon => 'download.gif' %>
@@ -46,7 +46,7 @@ CampaignViewer = {
   <% end -%>
 
   <% if @campaign.stat_queue_size > 0 %>
-    <% stat_view do |f| %>
+    <%= stat_view do |f| %>
       <%= f.header 'General Info' %>
       <%= f.row 'Total Campaign Recipients', @campaign.stat_queue_size %>
       <%= f.row 'Recipients Processed', sprintf("%d (%2.02f%%)",@campaign.stat_processed,(@campaign.stat_processed * 100 / @campaign.stat_queue_size)) %>
@@ -84,34 +84,34 @@ CampaignViewer = {
 <% if @campaign.sender_type == 'mailing/webiva_sender' || @campaign.stats_updated_at %>      
 
   <br/><br/>
-  <% ajax_tabs [ 'Link Statistics', [ 'Opened Detail','CampaignViewer.loadDetails("opened");'],['Link Details','CampaignViewer.loadDetails("clicked");'],['Bounce Details','CampaignViewer.loadDetails("bounced");'],['Unsubscription Details','CampaignViewer.loadDetails("unsubscribed");'] ], 'Link Statistics' do |t| %>
-    <% t.tab do %>
+  <%= ajax_tabs [ 'Link Statistics', [ 'Opened Detail','CampaignViewer.loadDetails("opened");'],['Link Details','CampaignViewer.loadDetails("clicked");'],['Bounce Details','CampaignViewer.loadDetails("bounced");'],['Unsubscription Details','CampaignViewer.loadDetails("unsubscribed");'] ], 'Link Statistics' do |t| %>
+    <%= t.tab do %>
       <div class='admin_content'>
       <%= render :partial => 'link_statistics' %>
       </div>
     <% end -%>
-    <% t.tab do %> 
+    <%= t.tab do %> 
       <div class='admin_content'>
         <div id='details_opened'>
         <%= "Loading Opened Details..".t %>
         </div>
       </div>
     <% end -%>
-    <% t.tab do %> 
+    <%= t.tab do %> 
       <div class='admin_content'>
         <div id='details_clicked'>
         <%= "Loading Link Details...".t %>
         </div>
       </div>
     <% end -%>
-    <% t.tab do %> 
+    <%= t.tab do %> 
       <div class='admin_content'>
         <div id='details_bounced'>
         <%= "Loading Bounce Details...".t %>
         </div>
       </div>
     <% end -%>
-    <% t.tab do %>
+    <%= t.tab do %>
       <div class='admin_content'>
         <div id='details_unsubscribed'>
         <%= "Loading Unsuscription Details...".t %> 

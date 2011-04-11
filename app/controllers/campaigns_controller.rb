@@ -5,7 +5,8 @@ require 'net/smtp'
 require 'uri'
 
 class CampaignsController < ModuleController
-
+  include RjsHelper
+  
   layout 'manage'
   
   permit 'mailing_mailing', :except => [ :view, :link, :image ]
@@ -30,6 +31,8 @@ class CampaignsController < ModuleController
                   'Mail' => { :controller => '/mail_manager' },
                   'Email Campaigns' => { :action => 'index' }
 
+  after_filter :set_rjs_content_type, :only => ['update_campaigns', 'segment_info', 'preview_template', 'segment']
+  
   def verify_mail_module
 
     if !check_mail_module
@@ -789,6 +792,7 @@ class CampaignsController < ModuleController
     return unless verify_campaign_setup
 
     unless @campaign.valid_market_segment?
+      set_rjs_content_type
       render :update do |page|
 	page.redirect_to :action => :campaign, :path => [@campaign.id]
       end
@@ -796,6 +800,7 @@ class CampaignsController < ModuleController
     end
 
     unless @campaign.mail_template
+      set_rjs_content_type
       render :update do |page|
 	page.redirect_to :action => :message, :path => [@campaign.id]
       end
@@ -810,7 +815,7 @@ class CampaignsController < ModuleController
 	@campaign.save
 
 	@campaign.run_campaign
-
+        set_rjs_content_type
 	render :update do |page|
 	  page.redirect_to :action => 'index'
 	end

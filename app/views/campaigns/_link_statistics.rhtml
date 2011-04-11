@@ -1,5 +1,5 @@
 <% if @campaign.track_links? %>
-  <% table_for @campaign.market_links.find(:all,:order => 'clicked DESC, unique_clicked DESC, link_to'), [ 'Link','Unique Clicks','Total Clicks' ], :class => 'data_table'  do |t| -%>
+  <%= table_for @campaign.market_links.find(:all,:order => 'clicked DESC, unique_clicked DESC, link_to'), [ 'Link','Unique Clicks','Total Clicks' ], :class => 'data_table'  do |t| -%>
     <tr>
       <td><%= link_to t.link_to, t.link_to, :target => 'blank'  %></td>
       <td align='center'><%= t.unique_clicked %></td>
