@@ -23,8 +23,8 @@
 </td>
 
 <td>
-<% if @campaign.errors.invalid?(:market_segment_id) -%>
-  <span class='error'><%= @campaign.errors.on(:market_segment_id) %></span><br/>
+<% unless @campaign.errors[:market_segment_id].empty? -%>
+  <span class='error'><%= @campaign.errors[:market_segment_id][0] %></span><br/>
 <% end -%>
 <%
   segment_choices = @segments.collect() { |seg| [ seg.name,seg.id ] }

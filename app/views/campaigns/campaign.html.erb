@@ -154,7 +154,7 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
 
 <h2 class="inform">Setup</h2>
 
-<% if @campaign.errors.on_base -%>
+<% unless @campaign.errors[:base].empty? -%>
 <div class="error" style="padding-bottom:10px;"><%= f.output_error_message('', :base) %></div>
 <% end -%>
 

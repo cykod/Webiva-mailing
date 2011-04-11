@@ -5,7 +5,7 @@ module CampaignsHelper
   def message_excerpt(seg)
     msg = 'Subject: '.t + seg.subject + '<br/>'
     msg += 'Message: '.t 
-    msg += truncate(seg.body_type.include?('text') ?  seg.body_text : seg.body_html.gsub(/<\/?[^>]*>/, ""),60)
+    msg += truncate(seg.body_type.include?('text') ?  seg.body_text : seg.body_html.gsub(/<\/?[^>]*>/, ""), :length => 60)
       
     msg
   end

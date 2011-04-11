@@ -7,7 +7,7 @@ campaign_max_step ||= @campaign_max_step
 <div class='wizard_steps_box'>
 <table>
 <tr>
-<% wizard_steps campaign_step, campaign_max_step, :tag => 'td', :class => 'selected' do |steps| %>
+<%= wizard_steps campaign_step, campaign_max_step, :tag => 'td', :class => 'selected' do |steps| %>
   <%= steps.step 1,  "Setup and Targets".t,url_for( :controller => 'campaigns', :action => :campaign, :path => campaign_id ) %>
   <td class="arrow"> &gt;&gt; </td>
   <%= steps.step 2,  "Add & Edit Message".t, url_for(:controller => 'campaigns', :action => :message, :path => campaign_id ) %>
