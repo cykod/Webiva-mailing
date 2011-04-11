@@ -8,7 +8,8 @@
 <% end -%>
 
 
-<% remote_tabled_form_for :options, @options, 
+<%= tabled_form_for :options, @options, 
+                :remote => true,
 		:update => 'element_info', 
 		:method => 'post', 
 		:url =>  { :controller => '/mailing/admin', :action => 'mail', :path => @node.id  } do  |f| -%>

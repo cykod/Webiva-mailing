@@ -5,14 +5,14 @@
       </div>
   <% end -%>
 
-<% active_table_for 'campaign_table', @active_table_output,
+<%= active_table_for 'campaign_table', @active_table_output,
                     :refresh_url => url_for(:action => 'display_campaign_table'),
                     :class => 'active_table',
                     :actions => [ [ 'Archive', 'archive', 'Archive the selected entries?' ],
                                   [ 'Duplicate', 'copy', 'Duplicate the selected entries? (Entries will be assigned new ID\'s)'] ],
                     :more_actions => [ [ 'Delete', 'delete','Are you sure you want to delete the selected campaigns?'], [ 'Pause', 'pause','Are you sure you want to pause the selected campaigns?'], ['Resend', 'resend'] ],
                     :update => 'campaign_table' do |t| %>
-<tr <%= highlight_row 'campaign',t.id %>>
+<%= active_tr 'campaign', t.id do %>
   <td class='empty' ><%= entry_checkbox "campaign",t.id %> </td>
   <td>
     <% if t.under_construction? %>

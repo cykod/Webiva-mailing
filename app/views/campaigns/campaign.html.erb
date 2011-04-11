@@ -150,7 +150,7 @@ showAllOptions = @campaign.market_segment || ! @campaign.name.blank? ? true : fa
 
 <%= render :partial => 'campaign_steps' %>
 
-<% cms_unstyled_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
+<%= cms_unstyled_form_for :campaign, @campaign, :html => {:name => 'campaign_form', :id => 'campaign_form'} do |f| -%>
 
 <h2 class="inform">Setup</h2>
 

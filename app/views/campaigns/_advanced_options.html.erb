@@ -2,7 +2,7 @@
 .admin_form td.label_vertical { font-weight: normal; }
 </style>
 
-<% cms_subfields_for :campaign, @campaign do |f| -%>
+<%= cms_subfields_for :campaign, @campaign do |f| -%>
 <table style="color:#444;">
 <tr class="vertical"><td colspan="2" style="padding-bottom:2px;"><h4><%= "From Email Addresses".t %></h4></td></tr>
 
@@ -31,7 +31,7 @@
 <% end -%>
 
 <% if @campaign.sender_class.respond_to?('send_options') && @send_options -%>
-  <% cms_fields_for 'campaign_options', @send_options do |so| -%>
+  <%= cms_fields_for 'campaign_options', @send_options do |so| -%>
     <%= render :partial => @campaign.sender_class.send_options_partial, :locals => { :f => so } %>
   <% end -%>
 <% end -%>

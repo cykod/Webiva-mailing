@@ -5,7 +5,7 @@
   <%= f.select :default_sender, @senders %>
 <% @handlers.each do |sender|
    if sender[:options_partial] -%>
-<% cms_subfields_for "options[senders][#{sender[:identifier]}]", sender[:opts] do |sf| -%>
+<%= cms_subfields_for "options[senders][#{sender[:identifier]}]", sender[:opts] do |sf| -%>
   <%= f.header sender[:name] + " Options" %>
   <%= render :partial => sender[:options_partial], :locals => {:f => sf } %>
 <% end -%>

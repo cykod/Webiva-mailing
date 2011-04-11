@@ -32,14 +32,12 @@ CampaignEditor = {
 
 }
 
-<%= active_table_javascript %>
-
 </script>
-  <% action_panel :more => true do |p| %>
+  <%= action_panel :more => true do |p| %>
      <%= p.link 'Create a new Campaign', :action => 'campaign', :icon => 'add.png' %>
   <% end -%>
 
-  <% more_action_panel do |p| %>
+  <%= more_action_panel do |p| %>
   <% if @show_archived %>
     <%= p.link "Hide Archived",:action => 'index',:archived => 0, :icon => 'show.gif' %>
         <% else-%>
