@@ -80,10 +80,10 @@ class CampaignsController < ModuleController
       @user.elevate_user_level EndUser::UserLevel::VISITED
 
       if !@queue.opened?
-	      @queue.reload(:lock => true)
+	      @queue.reload
 	
 	      if !@queue.opened?
-	        @campaign.reload(:lock => true)
+	        @campaign.reload
 	        # Update the number of openings
 	        @campaign.stat_opened += 1
 	        # and we know this queue entry has opened the mail
@@ -145,10 +145,10 @@ class CampaignsController < ModuleController
           raise InvalidPageDataException.new(@tst_msg) unless @campaign.under_construction?
           
         else
-          @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash,:lock => true) || raise(InvalidPageDataException.new(@real_msg))
-          @market_link = @campaign.market_links.find_by_link_hash(link_hash, :lock=>true) || raise(InvalidPageDataException.new(@real_msg))
+          @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new(@real_msg))
+          @market_link = @campaign.market_links.find_by_link_hash(link_hash) || raise(InvalidPageDataException.new(@real_msg))
           
-          @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash, :lock=>true) || raise(InvalidPageDataException.new(@real_msg))
+          @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash) || raise(InvalidPageDataException.new(@real_msg))
           
           # Make sure we have a user 
           @user = EndUser.find_target @queue.email, :source => 'website'
@@ -221,8 +221,8 @@ class CampaignsController < ModuleController
       render :text => 'This message was sent during campaign preview and is no longer valid'
       return
     else
-      @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash,:lock => true) || raise(InvalidPageDataException.new("Invalid Image"))
-      @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash, :lock=>true) || raise(InvalidPageDataException.new("Invalid Image"))
+      @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Image"))
+      @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash) || raise(InvalidPageDataException.new("Invalid Image"))
 
       if !@queue.opened?
 	      # Update the number of openings
@@ -790,14 +790,14 @@ class CampaignsController < ModuleController
 
     unless @campaign.valid_market_segment?
       render :update do |page|
-	page.redirect_to :action => :campaign, :path => [@campaign.id]
+        page.redirect_to :action => :campaign, :path => [@campaign.id]
       end
       return
     end
 
     unless @campaign.mail_template
       render :update do |page|
-	page.redirect_to :action => :message, :path => [@campaign.id]
+        page.redirect_to :action => :message, :path => [@campaign.id]
       end
       return
     end
@@ -805,16 +805,16 @@ class CampaignsController < ModuleController
     if request.post? && params[:send_campaign]
       @campaign = MarketCampaign.find(params[:path][0],:lock => true,:conditions => 'status = "setup"')
       if @campaign
-	@campaign.status = 'initializing'
-	@campaign.edited_at = Time.now
-	@campaign.save
+        @campaign.status = 'initializing'
+        @campaign.edited_at = Time.now
+        @campaign.save
 
-	@campaign.run_campaign
+        @campaign.run_campaign
 
-	render :update do |page|
-	  page.redirect_to :action => 'index'
-	end
-	return
+        render :update do |page|
+          page.redirect_to :action => 'index'
+        end
+        return
       end
     elsif request.post?
       @not_checked = true
