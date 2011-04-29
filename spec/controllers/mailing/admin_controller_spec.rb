@@ -2,7 +2,8 @@ require "spec_helper"
 require "mailing_spec_helper"
 
 describe Mailing::AdminController do
-
+  render_views
+  
   before(:each) do
     @mm = SiteVersion.default.root.add_subpage 'test', 'M'
     @mm.module_name = '/mailing/mail'

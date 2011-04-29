@@ -2,6 +2,7 @@ require "spec_helper"
 require "mailing_spec_helper"
 
 describe Mailing::ReportsController do
+  render_views
 
   reset_domain_tables :market_campaigns, :market_segments, :end_users, :market_campaign_messages, :site_versions, :site_nodes, :market_links, :market_campaign_queues, :mail_templates, :market_link_entries
 
