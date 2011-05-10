@@ -66,14 +66,16 @@ class CampaignsController < ModuleController
   public
    
    def view
+     campaign_hash = params[:campaign_hash].to_s.gsub(/[^A-F0-9]+/,'')
+     queue_hash = params[:queue_hash].to_s.gsub(/[^A-Z0-9]+/,'')
    
-    if params[:queue_hash] == 'QUEUE'
-      @campaign = MarketCampaign.find_by_identifier_hash(params[:campaign_hash]) || raise(InvalidPageDataException.new("Invalid Mailing"))
+    if queue_hash == 'QUEUE'
+      @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Mailing"))
       raise(InvalidPageDataException.new("Invalid Mailing")) unless  @campaign.under_construction?
       @under_construction = true
     else
-      @campaign = MarketCampaign.find_by_identifier_hash(params[:campaign_hash]) || raise(InvalidPageDataException.new("Invalid Mailing"))
-      @queue= @campaign.market_campaign_queues.find_by_queue_hash(params[:queue_hash]) || raise(InvalidPageDataException.new("Invalid Mailing"))
+      @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Mailing"))
+      @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash) || raise(InvalidPageDataException.new("Invalid Mailing"))
     
       # Make sure we have a user 
       @user = EndUser.find_target @queue.email, :source => 'website'
@@ -86,11 +88,11 @@ class CampaignsController < ModuleController
 	        @campaign.reload
 	        # Update the number of openings
 	        @campaign.stat_opened += 1
+	        @campaign.save
 	        # and we know this queue entry has opened the mail
 	        @queue.opened_at = Time.now
 	        @queue.opened = true
 	
-	        @campaign.save
 	        @queue.save
                 
 	      end
