@@ -66,8 +66,8 @@ class CampaignsController < ModuleController
   public
    
    def view
-     campaign_hash = params[:campaign_hash].to_s.gsub(/[^A-F0-9]+/,'')
-     queue_hash = params[:queue_hash].to_s.gsub(/[^A-Z0-9]+/,'')
+     campaign_hash = params[:campaign_hash].to_s.gsub(/[^a-fA-F0-9]+/,'')
+     queue_hash = params[:queue_hash].to_s.gsub(/[^a-fA-Z0-9]+/,'')
    
     if queue_hash == 'QUEUE'
       @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Mailing"))
@@ -132,9 +132,9 @@ class CampaignsController < ModuleController
   end
    
   def link 
-    campaign_hash = params[:campaign_hash].to_s.gsub(/[^A-F0-9]+/,'')
-    queue_hash = params[:queue_hash].to_s.gsub(/[^A-Z0-9]+/,'')
-    link_hash = params[:link_hash].to_s.gsub(/[^A-F0-9]+/,'')
+    campaign_hash = params[:campaign_hash].to_s.gsub(/[^a-fA-F0-9]+/,'')
+    queue_hash = params[:queue_hash].to_s.gsub(/[^a-fA-Z0-9]+/,'')
+    link_hash = params[:link_hash].to_s.gsub(/[^a-fA-F0-9]+/,'')
 
 
     @tst_msg = "This link was sent in a test message and is no longer valid once a campaign has been sent.".t
