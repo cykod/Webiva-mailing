@@ -26,7 +26,7 @@ feature :mail_template_list, :default_feature => <<-FEATURE
       c.define_value_tag('template:html') { |tag| tag.locals.tpl.body_html }
       c.define_value_tag('template:text') { |tag| tag.locals.tpl.body_text }
       c.define_position_tags
-      c.define_pages_tag('templates:pages',data[:url],data[:page],data[:pages]) 
+      c.define_pagelist_tag('templates:pages') { |t| data[:page] }
     end
   end
     
@@ -44,9 +44,15 @@ feature :mail_template_list, :default_feature => <<-FEATURE
   
     if !feature_output
       
-        @pages,@tpls = MailTemplate.paginate(@page,:conditions => ['template_type = "campaign" AND category = ? AND published_at IS NOT NULL',@options.category ], :order => 'published_at DESC', :per_page => @options.per_page )
+        conditions = ['template_type = "campaign" AND published_at IS NOT NULL' ]
+        if @options.category.present? 
+          conditions[0] += " AND category = ?"
+          conditions << @options.category
+        end
+
+        @pages,@tpls = MailTemplate.paginate(@page,:conditions => conditions, :order => 'published_at DESC', :per_page => @options.per_page )
         
-        data = { :mail_templates => @tpls, :pages => @pages[:pages], :page => @pages[:page], :url => page_path }
+        data = { :mail_templates => @tpls, :pages => @pages, :url => page_path }
         
         feature_output = mail_template_list_feature(data)
         

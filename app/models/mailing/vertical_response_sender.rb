@@ -276,7 +276,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
         next unless row[response_date_field]
         response_date = Time.parse(row[response_date_field])
         # Skip this entry unless it's new or this is our first pass through the sttas
-        next unless !@campaign.stats_updated_at || response_date > @campaign.stats_updated_at
+        next unless !@campaign.stats_updated_at || response_date > @campaign.stats_updated_at - 24.hours
   
         response_type = row[response_type_field]
         next if response_type == 'NONE' # Nothing to do if NONE
