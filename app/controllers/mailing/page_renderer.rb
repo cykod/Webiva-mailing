@@ -23,6 +23,7 @@ feature :mail_template_list, :default_feature => <<-FEATURE
       c.define_expansion_tag('templates') { |tag| data[:mail_templates].length > 0 }
       c.define_tag('template') { |tag| c.each_local_value(data[:mail_templates],tag,'tpl') }
       c.define_value_tag('template:name') { |tag| tag.locals.tpl.name }
+      c.value_tag('template:subject') { |t| t.locals.tpl.subject }
       c.define_value_tag('template:html') { |tag| tag.locals.tpl.body_html }
       c.define_value_tag('template:text') { |tag| tag.locals.tpl.body_text }
       c.define_position_tags
