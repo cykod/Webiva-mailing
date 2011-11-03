@@ -21,7 +21,7 @@
   <br/>
   <p align='center'>
       <input type='button' value='<%= "Cancel".t %>' onclick='CampaignConfirmation.closeOverlay();' />
-      <input type='submit' value='<%= "Send Campaign!".t %>' onclick='this.disabled = true;' />
+      <input type='submit' value='<%= "Send Campaign!".t %>' onclick='var e = this; setTimeout(function() { e.disabled = true; },100);' />
     </p>
   </form>  
 </div>

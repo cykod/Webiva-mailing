@@ -71,7 +71,6 @@ class CampaignsController < ModuleController
    
     if queue_hash == 'QUEUE'
       @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Mailing"))
-      raise(InvalidPageDataException.new("Invalid Mailing")) unless  @campaign.under_construction?
       @under_construction = true
     else
       @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new("Invalid Mailing"))
@@ -80,6 +79,8 @@ class CampaignsController < ModuleController
       # Make sure we have a user 
       @user = EndUser.find_target @queue.email, :source => 'website'
       @user.elevate_user_level EndUser::UserLevel::VISITED
+
+      @campaign.get_handler_instances("mailing","view").each { |h| h.mailing_view(@user) } if @user && !@under_construction
 
       if !@queue.opened?
 	      @queue.reload
@@ -144,8 +145,7 @@ class CampaignsController < ModuleController
         if queue_hash == 'QUEUE'
           @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new(@real_msg))
           @market_link = @campaign.market_links.find_by_link_hash(link_hash) || raise(InvalidPageDataException.new(@real_msg))
-          raise InvalidPageDataException.new(@tst_msg) unless @campaign.under_construction?
-          
+          @under_construction = true
         else
           @campaign = MarketCampaign.find_by_identifier_hash(campaign_hash) || raise(InvalidPageDataException.new(@real_msg))
           @market_link = @campaign.market_links.find_by_link_hash(link_hash) || raise(InvalidPageDataException.new(@real_msg))
@@ -155,10 +155,15 @@ class CampaignsController < ModuleController
           # Make sure we have a user 
           @user = EndUser.find_target @queue.email, :source => 'website'
 
+
+
           # Find or new a market link entry
           @link_entry = @market_link.market_link_entries.find_by_market_campaign_queue_id(@queue.id) || 
                         @market_link.market_link_entries.build(:first_clicked_at => Time.now,
                                                             :market_campaign_queue_id => @queue.id)
+
+
+          @campaign.get_handler_instances("mailing","link").each { |h| h.mailing_link(@user) } if @user && !@under_construction && @queue.click_count == 0
                                                             
           # increase the click count, set the last clicked_at
           @link_entry.click_count += 1
@@ -227,6 +232,10 @@ class CampaignsController < ModuleController
       @queue= @campaign.market_campaign_queues.find_by_queue_hash(queue_hash) || raise(InvalidPageDataException.new("Invalid Image"))
 
       if !@queue.opened?
+        @user = EndUser.find_target @queue.email, :source => 'website'
+        @user.elevate_user_level EndUser::UserLevel::VISITED
+        @campaign.get_handler_instances("mailing","view").each { |h| h.mailing_view(@user) } if @user 
+
 	      # Update the number of openings
 	      @campaign.stat_opened += 1
 	      # and we know this queue entry has opened the mail
