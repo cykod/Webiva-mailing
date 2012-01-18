@@ -80,6 +80,10 @@ class CampaignsController < ModuleController
       @user = EndUser.find_target @queue.email, :source => 'website'
       @user.elevate_user_level EndUser::UserLevel::VISITED
 
+      session[:captured_user_info] ||= {}
+      session[:captured_user_info][:email] ||= @user.email
+      session[:captured_user_info][:name] ||= @user.name
+
       @campaign.get_handler_instances("mailing","view").each { |h| h.mailing_view(@user) } if @user && !@under_construction
 
       if !@queue.opened?
@@ -156,6 +160,9 @@ class CampaignsController < ModuleController
           @user = EndUser.find_target @queue.email, :source => 'website'
 
 
+          session[:captured_user_info] ||= {}
+          session[:captured_user_info][:email] ||= @user.email
+          session[:captured_user_info][:name] ||= @user.name
 
           # Find or new a market link entry
           @link_entry = @market_link.market_link_entries.find_by_market_campaign_queue_id(@queue.id) || 
