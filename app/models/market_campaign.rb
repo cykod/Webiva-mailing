@@ -255,9 +255,6 @@ class MarketCampaign < DomainModel
       # Help the garbage collecting if we can
       targets = nil
 
-      GC.start
-
-      
       entry_offset += QUEUE_WINDOW_SIZE      
       self.update_attribute(:stat_queue_size,entry_count)
     end

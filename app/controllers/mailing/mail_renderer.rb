@@ -37,7 +37,7 @@ class Mailing::MailRenderer < ParagraphRenderer
       
       if @unsubscribe.save
 	if @queue && @campaign
-	  @queue.reload(:lock => true)
+	  @queue.reload()
 	  @campaign.reload(:lock => true)
 	  
 	  if !@queue.unsubscribed

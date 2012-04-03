@@ -285,7 +285,7 @@ class Mailing::VerticalResponseSender < Mailing::Base
         response_email = row[email_field]
         
         
-        queue = @campaign.market_campaign_queues.find_by_email(response_email,:lock => true)
+        queue = @campaign.market_campaign_queues.find_by_email(response_email)
         next unless queue
         
         case response_type.upcase
